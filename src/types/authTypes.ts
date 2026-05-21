@@ -1,14 +1,28 @@
 export interface LoginPayload {
-	email: string;
-	username: string | null;
-	password: string;
+  phone: string;
+}
+
+export interface SendOTPPayload {
+  phone: string;
+}
+
+export interface SendOTPResponse {
+  data?: object;
+  message: string;
+  statusCode: number;
+}
+
+export interface VerifyOTPPayload {
+  phone: string;
+  otp: string;
 }
 
 export interface LoginResponse {
-	user: {
-		id: number;
-		name: string;
-		email: string;
-		username: string;
-	};
+  statusCode: number;
+  message: string;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+    phone: string;
+  };
 }
