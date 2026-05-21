@@ -1,4 +1,17 @@
 export interface UserState {
-	username: string | null;
-	setUsername: (username: string) => void;
+  username: string | null;
+  phone: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  rememberMe: boolean;
+  setRememberMe: (rememberMe: boolean) => void;
+
+  // Actions
+  setUsername: (username: string) => void;
+  setAuthData: (data: {
+    phone: string;
+    accessToken: string;
+    refreshToken: string;
+  }) => void;
+  clearAuth: () => void;
 }
