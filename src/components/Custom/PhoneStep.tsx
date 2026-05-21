@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import CustomInput from "@/components/Custom/CustomInput";
+import { CustomCheckBox } from "@/components/Custom/CustomCheckBox";
+import { CustomLabel } from "@/components/Custom/CustomLabel";
 import { useFormik } from "formik";
 import { phoneValidationSchema } from "@/schemas/phoneLoginSchema";
 import { sendOTPService } from "@/services/authService";
@@ -76,13 +77,13 @@ export default function PhoneStep({
   };
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-muted/40 p-4"
+      className="min-h-screen flex items-center justify-center bg-muted/40 p-4 text-foreground"
       dir="rtl"
     >
       <Card className="w-full max-w-[400px] shadow-lg min-h-[500px] flex flex-col justify-between">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center tracking-tight text-foreground">
-            {"ورود با شماره موبایل"}
+          <CardTitle className="text-2xl font-bold text-center tracking-tight text-card-foreground">
+            {"ورود یا ثبت نام"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -91,14 +92,15 @@ export default function PhoneStep({
             className="flex-1 flex flex-col gap-6"
           >
             <div className="space-y-4">
-              <Label htmlFor="phone" className="text-sm font-medium ">
-                شماره موبایل خود را وارد کنید:
-              </Label>
-              <Input
+              <CustomLabel htmlFor="phone" className="text-sm font-medium ">
+                شماره موبایل خود را وارد کنید
+              </CustomLabel>
+              <CustomInput
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder="09374521254"
+                dir="ltr"
+                placeholder="09xxxxxxxxx"
                 disabled={formik.isSubmitting}
                 autoFocus
                 inputMode="numeric"
@@ -118,18 +120,18 @@ export default function PhoneStep({
               )}
             </div>
 
-            <div className="flex items-center gap-3 py-2">
-              <Input
-                id="rememberMe"
-                name="rememberMe"
-                type="checkbox"
-                className="w-4 h-4 "
-                checked={formik.values.rememberMe}
-                onChange={formik.handleChange}
-                disabled={formik.isSubmitting}
-              />
-              <Label htmlFor="rememberMe">من را به خاطر بسپار</Label>
-            </div>
+            <CustomCheckBox.Root
+              id="rememberMe"
+              checked={formik.values.rememberMe}
+              onCheckedChange={(checked) =>
+                formik.setFieldValue("rememberMe", checked)
+              }
+              disabled={formik.isSubmitting}
+              className="gap-3 py-2"
+            >
+              <CustomCheckBox.Checkbox className="w-4 h-4" />
+              <CustomCheckBox.Label>به خاطر بسپار</CustomCheckBox.Label>
+            </CustomCheckBox.Root>
 
             <Button
               type="submit"
