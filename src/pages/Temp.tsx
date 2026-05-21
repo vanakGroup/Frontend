@@ -4,6 +4,14 @@ import useUserStore from "@/store/userStore/userStore";
 import { translateNumber } from "@/utils/translateNumber";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Temp() {
   const { username, setUsername } = useUserStore();
@@ -40,6 +48,7 @@ export default function Temp() {
         >
           toast
         </button>
+
         <button
           className="cursor-pointer bg-accent rounded-md p-2"
           onClick={login}
@@ -70,6 +79,28 @@ export default function Temp() {
         <Button className="text-rounded-md p-4 cursor-pointer" size="sm">
           Login
         </Button>
+        <Button
+          disabled
+          className="text-rounded-md p-4 cursor-pointer"
+          size="sm"
+        >
+          test
+        </Button>
+      </div>
+      <div className="w-fit p-4 rounded-md flex flex-col place-self-center gap-4">
+        <Select>
+          <SelectTrigger className="w-[300px]">
+            <SelectValue placeholder="Select a fruit" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="apple">Apple</SelectItem>
+              <SelectItem value="banana">Banana</SelectItem>
+              <SelectItem value="orange">Orange</SelectItem>
+              <SelectItem value="none">none</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
       <p className="text-5xl text-center ">This is a temp page</p>
       <div className="flex flex-col place-items-center gap-2">
