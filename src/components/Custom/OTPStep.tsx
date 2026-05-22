@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   InputOTP,
   InputOTPGroup,
@@ -150,76 +156,83 @@ export default function OTPStep({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <Button size="icon" onClick={handleBack}>
-          <ArrowRight className="h-5 w-5" />
-        </Button>
-        <CardTitle>تایید کد</CardTitle>
-      </CardHeader>
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+      <Card>
+        <CardHeader className="relative flex items-center justify-center min-h-[64px] pb-4">
+          <CardAction className="absolute right-4 top-1/2 -translate-y-1/2">
+            <Button size="icon" onClick={handleBack}>
+              <ArrowRight className="h-5 w-5 text-white" />
+            </Button>
+          </CardAction>
+          <CardTitle className="text-xl md:text-2xl font-bold text-center">
+            تایید کد
+          </CardTitle>
+        </CardHeader>
 
-      <CardContent>
-        <form onSubmit={formik.handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="otp" className="block mb-2">
-              کد ارسال شده به شماره {phoneNumber} را وارد کنید
-            </Label>
+        <CardContent>
+          <form onSubmit={formik.handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="otp" className="block mb-6">
+                کد ارسال شده به شماره {phoneNumber} را وارد کنید
+              </Label>
 
-            <InputOTP
-              id="otp"
-              maxLength={6}
-              value={formik.values.otp}
-              onChange={handleOTPChange}
+              <InputOTP
+                id="otp"
+                maxLength={6}
+                value={formik.values.otp}
+                onChange={handleOTPChange}
+                disabled={formik.isSubmitting}
+                autoFocus
+              >
+                <InputOTPGroup className="gap-2 justify-center w-full direction-ltr">
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+
+              {formik.errors.otp && (
+                <p
+                  id="otp-error"
+                  className="text-sm font-medium text-destructive mt-4 mb-4"
+                  role="alert"
+                  dir="rtl"
+                >
+                  {formik.errors.otp}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
               disabled={formik.isSubmitting}
-              autoFocus
+              className="w-full text-white h-10 mt-4"
             >
-              <InputOTPGroup className="gap-2 justify-center w-full direction-ltr">
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
+              {formik.isSubmitting ? "در حال بررسی کد..." : "تایید"}
+            </Button>
 
-            {formik.errors.otp && (
-              <p
-                id="otp-error"
-                className="text-sm text-destructive mt-2"
-                role="alert"
-              >
-                {formik.errors.otp}
-              </p>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            disabled={formik.isSubmitting}
-            className="w-full"
-          >
-            {formik.isSubmitting ? "در حال بررسی کد..." : "تایید"}
-          </Button>
-
-          <div className="text-center">
-            {timeLeft > 0 ? (
-              <p className="text-sm text-muted-foreground">
-                برای ارسال مجدد {formatTime(timeLeft)} صبر کنید
-              </p>
-            ) : (
-              <Button
-                type="button"
-                variant="link"
-                className="hover:underline"
-                onClick={handleResend}
-              >
-                برای ارسال مجدد کلیک کنید
-              </Button>
-            )}
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            <div className="text-center">
+              {timeLeft > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  برای ارسال مجدد {formatTime(timeLeft)} صبر کنید
+                </p>
+              ) : (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="hover:underline "
+                  onClick={handleResend}
+                >
+                  برای ارسال مجدد کلیک کنید
+                </Button>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
