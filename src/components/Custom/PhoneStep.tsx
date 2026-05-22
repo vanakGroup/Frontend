@@ -8,7 +8,6 @@ import { phoneValidationSchema } from "@/schemas/phoneLoginSchema";
 import { sendOTPService } from "@/services/authService";
 import { toast } from "sonner";
 import useUserStore from "@/store/userStore/userStore";
-
 export default function PhoneStep({
   phoneNumber,
   setPhoneNumber,
@@ -82,6 +81,13 @@ export default function PhoneStep({
     >
       <Card className="w-full max-w-[400px] shadow-lg min-h-[500px] flex flex-col justify-between">
         <CardHeader>
+          <CardContent>
+            <img
+              src="/logotype.png"
+              alt="Logo"
+              className="mx-auto w-32 md:w-full md:max-w-[200px] h-auto"
+            />
+          </CardContent>
           <CardTitle className="text-2xl font-bold text-center tracking-tight text-card-foreground">
             {"ورود یا ثبت نام"}
           </CardTitle>
