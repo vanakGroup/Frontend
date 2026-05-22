@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Input } from "@base-ui/react/input";
+import { Input } from "@/components/ui/input";
 import { CustomLabel } from "./CustomLabel";
 import React, { useContext } from "react";
 
@@ -42,20 +42,26 @@ const CustomInputContext = React.createContext<CustomInputContextValue | null>(
 );
 
 interface CustomInputLabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
-  variant?: "default" | "primary" | "secondary" | "muted" | "accent" | "destructive";
+  variant?:
+    | "default"
+    | "primary"
+    | "secondary"
+    | "muted"
+    | "accent"
+    | "destructive";
   size?: "sm" | "default" | "lg" | "xl";
   weight?: "normal" | "medium" | "semibold" | "bold";
   required?: boolean;
 }
 
-const CustomInputLabel: React.FC<CustomInputLabelProps> = ({ 
-  children, 
-  className, 
+const CustomInputLabel: React.FC<CustomInputLabelProps> = ({
+  children,
+  className,
   variant,
   size,
   weight,
   required,
-  ...props 
+  ...props
 }) => {
   const context = useContext(CustomInputContext);
 
@@ -109,8 +115,15 @@ const CustomInputInput = React.forwardRef<
     onEnter,
     onKeyDown: contextOnKeyDown,
     type,
+    inputProps,
     inputRef,
   } = context;
+
+  const mergedProps = {
+    ...inputProps,
+    ...props,
+    type: props.type ?? inputProps.type ?? type,
+  } as React.InputHTMLAttributes<HTMLInputElement>;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && onEnter) {
@@ -137,12 +150,10 @@ const CustomInputInput = React.forwardRef<
       <Input
         ref={ref ?? inputRef}
         id={inputId}
-        type={props.type ?? type}
-        data-slot="input"
         dir={dir}
         onKeyDown={handleKeyDown}
         className={cn(
-          "w-full rounded-xl border bg-background outline-none transition-all duration-200 ring-0",
+          "w-full rounded-xl border bg-background text-foreground outline-none transition-all duration-200 ring-0",
           dir === "rtl" ? "text-right" : "text-left",
           icon && actualIconPosition === "left" && (isRTL ? "pr-10" : "pl-10"),
           icon && actualIconPosition === "right" && (isRTL ? "pl-10" : "pr-10"),
@@ -163,9 +174,10 @@ const CustomInputInput = React.forwardRef<
           "placeholder:text-muted-foreground",
           error &&
             "border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/30",
+          inputProps.className,
           className,
         )}
-        {...props}
+        {...mergedProps}
       />
       {icon && actualIconPosition === "right" && (
         <div
@@ -221,6 +233,7 @@ const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
       icon,
       iconPosition = "left",
       dir = "rtl",
+      placeholder,
       onEnter,
       onKeyDown,
       type,
@@ -266,14 +279,21 @@ const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
       onKeyDown,
       className,
       type,
-      inputProps,
+      inputProps: {
+        ...inputProps,
+        placeholder,
+        className,
+      },
       inputRef: ref,
     };
 
     return (
       <CustomInputContext.Provider value={contextValue}>
         <div
-          className={cn("flex flex-col w-full space-y-1.5", className)}
+          className={cn(
+            "flex flex-col w-full space-y-1.5 text-foreground",
+            className,
+          )}
           dir={dir}
         >
           {label && !hasLabelChild && (

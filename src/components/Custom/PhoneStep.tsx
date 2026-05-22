@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import CustomInput from "@/components/Custom/CustomInput";
+import { CustomCheckBox } from "@/components/Custom/CustomCheckBox";
+import { CustomLabel } from "@/components/Custom/CustomLabel";
 import { useFormik } from "formik";
 import { phoneValidationSchema } from "@/schemas/phoneLoginSchema";
 import { sendOTPService } from "@/services/authService";
 import { toast } from "sonner";
 import useUserStore from "@/store/userStore/userStore";
-
 export default function PhoneStep({
   phoneNumber,
   setPhoneNumber,
@@ -76,13 +76,20 @@ export default function PhoneStep({
   };
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-muted/40 p-4"
+      className="min-h-screen flex items-center justify-center bg-muted/40 p-4 text-foreground"
       dir="rtl"
     >
       <Card className="w-full max-w-[400px] shadow-lg min-h-[500px] flex flex-col justify-between">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center tracking-tight text-foreground">
-            {"ورود با شماره موبایل"}
+          <CardContent>
+            <img
+              src="/logotype.png"
+              alt="Logo"
+              className="mx-auto w-32 md:w-full md:max-w-[200px] h-auto"
+            />
+          </CardContent>
+          <CardTitle className="text-2xl font-bold text-center tracking-tight text-card-foreground">
+            {"ورود یا ثبت نام"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -90,15 +97,16 @@ export default function PhoneStep({
             onSubmit={formik.handleSubmit}
             className="flex-1 flex flex-col gap-6"
           >
-            <div className="space-y-4">
-              <Label htmlFor="phone" className="text-sm font-medium ">
-                شماره موبایل خود را وارد کنید:
-              </Label>
-              <Input
+            <div className="flex flex-col gap-3">
+              <CustomLabel htmlFor="phone" className="text-sm font-medium ">
+                شماره موبایل خود را وارد کنید
+              </CustomLabel>
+              <CustomInput
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder="09374521254"
+                dir="ltr"
+                placeholder="09xxxxxxxxx"
                 disabled={formik.isSubmitting}
                 autoFocus
                 inputMode="numeric"
@@ -112,29 +120,29 @@ export default function PhoneStep({
                 }
               />
               {formik.touched.phone && formik.errors.phone && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-destructive font-medium">
                   {formik.errors.phone}
                 </p>
               )}
             </div>
 
-            <div className="flex items-center gap-3 py-2">
-              <Input
-                id="rememberMe"
-                name="rememberMe"
-                type="checkbox"
-                className="w-4 h-4 "
-                checked={formik.values.rememberMe}
-                onChange={formik.handleChange}
-                disabled={formik.isSubmitting}
-              />
-              <Label htmlFor="rememberMe">من را به خاطر بسپار</Label>
-            </div>
+            <CustomCheckBox.Root
+              id="rememberMe"
+              checked={formik.values.rememberMe}
+              onCheckedChange={(checked) =>
+                formik.setFieldValue("rememberMe", checked)
+              }
+              disabled={formik.isSubmitting}
+              className="gap-3 py-2"
+            >
+              <CustomCheckBox.Checkbox className="w-4 h-4" />
+              <CustomCheckBox.Label>به خاطر بسپار</CustomCheckBox.Label>
+            </CustomCheckBox.Root>
 
             <Button
               type="submit"
               disabled={formik.isSubmitting}
-              className="w-full h-12"
+              className="w-full h-12 text-white"
             >
               {formik.isSubmitting ? "در حال ورود ..." : "ورود"}
             </Button>
