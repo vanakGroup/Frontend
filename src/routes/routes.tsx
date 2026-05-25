@@ -5,6 +5,7 @@ import Blank from "@/pages/Blank";
 import Temp from "@/pages/Temp";
 import Login from "@/pages/Login";
 import ComponentTest from "@/pages/ComponentTest";
+import AboutUs from "@/pages/AboutUs";
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
         path: "/test",
         element: <ComponentTest />,
       },
+      { path: "/aboutus", element: <AboutUs /> },
       // {
       // 	path: "/AboutUs",
       // 	element: <AboutUs />,
