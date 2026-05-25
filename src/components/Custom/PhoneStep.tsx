@@ -76,7 +76,7 @@ export default function PhoneStep({
   };
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-muted/40 p-4 text-foreground"
+      className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/40 p-4 text-foreground"
       dir="rtl"
     >
       <Card className="w-full max-w-[400px] shadow-lg min-h-[500px] flex flex-col justify-between">

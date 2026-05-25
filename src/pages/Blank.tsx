@@ -1,5 +1,9 @@
 function Blank() {
-  return <h1>login seuccesful</h1>;
+  return (
+    <div>
+      <h1>login succesful</h1>
+    </div>
+  );
 }
 
 export default Blank;

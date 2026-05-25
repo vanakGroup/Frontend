@@ -156,7 +156,7 @@ export default function OTPStep({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/40 p-4">
       <Card>
         <CardHeader className="relative flex items-center justify-center min-h-[64px] pb-4">
           <CardAction className="absolute right-4 top-1/2 -translate-y-1/2">
