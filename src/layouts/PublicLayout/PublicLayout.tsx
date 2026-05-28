@@ -21,7 +21,7 @@ const PublicLayout = () => {
 
   const mainNavLinks = [
     { label: "صفحه اصلی", to: "/", icon: <Info size={18} /> },
-    { label: "درباره ما", to: "/about", icon: <Info size={18} /> },
+    { label: "درباره ما", to: "/aboutus", icon: <Info size={18} /> },
   ];
 
   const dashboardLinks = [
