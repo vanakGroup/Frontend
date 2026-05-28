@@ -76,23 +76,25 @@ export const DesktopNavBar = ({ showToggle, links }: Props) => {
             </button>
           )}
 
-          <div className="flex items-center gap-3" dir="ltr">
-            <div className="hidden lg:flex flex-col" dir="rtl">
-              <span className="font-bold text-xl text-primary tracking-tight mb-1 leading-none">
-                ونک
-              </span>
-              <span className="text-[11px] text-muted-foreground font-medium leading-none">
-                سیستم پارکینگ هوشمند
-              </span>
+          <button onClick={() => Navigate("/")}>
+            <div className="flex items-center gap-3" dir="ltr">
+              <div className="hidden lg:flex flex-col" dir="rtl">
+                <span className="font-bold text-xl text-primary tracking-tight mb-1 leading-none">
+                  ونک
+                </span>
+                <span className="text-[11px] text-muted-foreground font-medium leading-none">
+                  سیستم پارکینگ هوشمند
+                </span>
+              </div>
+              <div className="w-10 h-10 shrink-0 flex items-center justify-center">
+                <img
+                  src="@/../jl.png"
+                  alt="logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
             </div>
-            <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-              <img
-                src="@/../jl.png"
-                alt="logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
-          </div>
+          </button>
         </div>
       </div>
     </header>
