@@ -147,7 +147,7 @@ export default function ContactUs() {
                   href="mailto:vanak@comp.iust.ac.ir"
                   className="text-sm text-primary font-bold block tracking-wide hover:underline text-left ltr"
                 >
-                  vanak@comp.iust.ac.ir
+                  contact@vanak.com
                 </a>
                 <p className="text-xs text-muted-foreground">
                   پاسخگویی رسمی و دریافت مستندات همکاری فنی
