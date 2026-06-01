@@ -1,11 +1,11 @@
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "../../components/ui/sonner";
 import { Outlet, useLocation } from "react-router-dom";
-import { DesktopNavBar } from "@/components/Custom/DesktopNavBar";
-import { MobileNavBar } from "@/components/Custom/MobileNavBar";
-import { DesktopSideBar } from "@/components/Custom/DesktopSideBar";
-import { MobileSideBar } from "@/components/Custom/MobileSideBar";
-import { useSidebarStore } from "@/store/sidebarStore/sidebarStore";
-import { Home, Layers, Info } from "lucide-react"; // ◄ Icons moved here!
+import { DesktopNavBar } from "../../components/Custom/DesktopNavBar";
+import { MobileNavBar } from "../../components/Custom/MobileNavBar";
+import { DesktopSideBar } from "../../components/Custom/DesktopSideBar";
+import { MobileSideBar } from "../../components/Custom/MobileSideBar";
+import { useSidebarStore } from "../../store/sidebarStore/sidebarStore";
+import { Home, Layers, Info, Phone } from "lucide-react";
 
 const PublicLayout = () => {
   const { isExpanded } = useSidebarStore();
@@ -20,8 +20,9 @@ const PublicLayout = () => {
   );
 
   const mainNavLinks = [
-    { label: "صفحه اصلی", to: "/", icon: <Info size={18} /> },
+    { label: "صفحه اصلی", to: "/", icon: <Home size={18} /> },
     { label: "درباره ما", to: "/aboutus", icon: <Info size={18} /> },
+    { label: "تماس با ما", to: "/contactus", icon: <Phone size={18} /> },
   ];
 
   const dashboardLinks = [
@@ -41,18 +42,22 @@ const PublicLayout = () => {
       {shouldShowNavbar && (
         <>
           <DesktopNavBar showToggle={isDashboardPage} links={mainNavLinks} />
-          {/* We only render DesktopSideBar if we are on a dashboard page */}
           {isDashboardPage && <DesktopSideBar links={dashboardLinks} />}
         </>
       )}
 
-      <MobileNavBar />
-      <MobileSideBar
-        isDashboardPage={isDashboardPage}
-        mainLinks={mainNavLinks}
-        dashboardLinks={dashboardLinks}
-      />
+      {shouldShowNavbar && (
+        <>
+          <MobileNavBar />
+          <MobileSideBar
+            isDashboardPage={isDashboardPage}
+            mainLinks={mainNavLinks}
+            dashboardLinks={dashboardLinks}
+          />
+        </>
+      )}
 
+      {}
       <main
         className={`
           min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out
