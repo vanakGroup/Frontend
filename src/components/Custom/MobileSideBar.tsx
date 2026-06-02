@@ -1,3 +1,4 @@
+import { useSidebarStore } from "@/store/sidebarStore/sidebarStore";
 import { SideBar } from "@/components/Custom/SideBar";
 import { SideBarItem } from "@/components/Custom/SideBarItem";
 import { LogOut, Settings } from "lucide-react";
@@ -13,6 +14,8 @@ export const MobileSideBar = ({
   mainLinks,
   dashboardLinks,
 }: Props) => {
+  const { collapseSidebar } = useSidebarStore();
+
   return (
     <div className="md:hidden">
       <SideBar>
@@ -24,6 +27,7 @@ export const MobileSideBar = ({
                 to={link.to}
                 icon={link.icon}
                 label={link.label}
+                onClick={collapseSidebar}
               />
             ))
           ) : (
@@ -40,6 +44,7 @@ export const MobileSideBar = ({
                   to={link.to}
                   icon={link.icon}
                   label={link.label}
+                  onClick={collapseSidebar}
                 />
               ))}
             </>
@@ -57,11 +62,13 @@ export const MobileSideBar = ({
             to="/settings"
             icon={<Settings size={20} />}
             label="تنظیمات"
+            onClick={collapseSidebar}
           />
           <SideBarItem
             to="/login"
             icon={<LogOut size={20} className="text-red-500" />}
             label="خروج"
+            onClick={collapseSidebar}
           />
         </div>
       </SideBar>
