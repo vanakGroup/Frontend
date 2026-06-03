@@ -210,136 +210,9 @@ export default function Landing() {
               strokeLinecap="round"
             />
 
-            {/* Parking Icons (Increased size for mobile visibility) */}
-            <g transform="translate(1060, 280)">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="40"
-                stroke="#94a3b8"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <rect
-                x="-30"
-                y="-60"
-                width="60"
-                height="60"
-                rx="12"
-                fill="var(--primary)"
-                stroke="white"
-                strokeWidth="4"
-              />
-              <text
-                x="0"
-                y="-16"
-                fill="white"
-                fontSize="40"
-                fontWeight="900"
-                textAnchor="middle"
-                fontFamily="sans-serif"
-              >
-                P
-              </text>
-            </g>
-            <g transform="translate(140, 700)">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="40"
-                stroke="#94a3b8"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <rect
-                x="-30"
-                y="-60"
-                width="60"
-                height="60"
-                rx="12"
-                fill="var(--primary)"
-                stroke="white"
-                strokeWidth="4"
-              />
-              <text
-                x="0"
-                y="-16"
-                fill="white"
-                fontSize="40"
-                fontWeight="900"
-                textAnchor="middle"
-                fontFamily="sans-serif"
-              >
-                P
-              </text>
-            </g>
-            <g transform="translate(1060, 1100)">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="40"
-                stroke="#94a3b8"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <rect
-                x="-30"
-                y="-60"
-                width="60"
-                height="60"
-                rx="12"
-                fill="var(--primary)"
-                stroke="white"
-                strokeWidth="4"
-              />
-              <text
-                x="0"
-                y="-16"
-                fill="white"
-                fontSize="40"
-                fontWeight="900"
-                textAnchor="middle"
-                fontFamily="sans-serif"
-              >
-                P
-              </text>
-            </g>
-            <g transform="translate(140, 1550)">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="40"
-                stroke="#94a3b8"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <rect
-                x="-30"
-                y="-60"
-                width="60"
-                height="60"
-                rx="12"
-                fill="var(--primary)"
-                stroke="white"
-                strokeWidth="4"
-              />
-              <text
-                x="0"
-                y="-16"
-                fill="white"
-                fontSize="40"
-                fontWeight="900"
-                textAnchor="middle"
-                fontFamily="sans-serif"
-              >
-                P
-              </text>
-            </g>
-            <g transform="translate(1060, 2000)">
+            {/* Parking Icons - قرارگیری مهندسی‌شده در اوج پیچ‌های جاده */}
+            {/* تابلوی ۱: سمت راست جاده (X=980, Y=340) */}
+            <g transform="translate(980, 340)">
               <line
                 x1="0"
                 y1="0"
@@ -372,6 +245,143 @@ export default function Landing() {
               </text>
             </g>
 
+            {/* تابلوی ۲: سمت چپ جاده (X=220, Y=880) */}
+            <g transform="translate(220, 880)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="4"
+              />
+              <text
+                x="0"
+                y="-16"
+                fill="white"
+                fontSize="40"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+
+            {/* تابلوی ۳: سمت راست جاده (X=980, Y=1320) */}
+            <g transform="translate(980, 1320)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="4"
+              />
+              <text
+                x="0"
+                y="-16"
+                fill="white"
+                fontSize="40"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+
+            {/* تابلوی ۴: سمت چپ جاده (X=220, Y=1780) */}
+            <g transform="translate(220, 1780)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="4"
+              />
+              <text
+                x="0"
+                y="-16"
+                fill="white"
+                fontSize="40"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+
+            {/* تابلوی ۵: سمت راست جاده (X=980, Y=2220) */}
+            <g transform="translate(980, 2220)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="4"
+              />
+              <text
+                x="0"
+                y="-16"
+                fill="white"
+                fontSize="40"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+
+            {/* Car Moving along the SVG path */}
             <g
               transform={`translate(${carPos.x}, ${carPos.y}) rotate(${carPos.angle})`}
               style={{
@@ -457,9 +467,11 @@ export default function Landing() {
         </div>
 
         {/* --- DYNAMIC INTERACTIVE CONTENT NODES --- */}
+        {/* چیدمان شطرنجی و کاملاً قرینه برای رفع تداخل ۱۰۰ درصدی با جاده و تابلوها */}
         <div className="relative w-full space-y-48 md:space-y-64 pt-16">
+          {/* کارت ۱: سمت چپ صفحه (در حالی که تابلوی ۱ در سمت راست جاده است) */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal>
                 <Card
                   dir="rtl"
@@ -483,8 +495,9 @@ export default function Landing() {
             </div>
           </div>
 
+          {/* کارت ۲: سمت راست صفحه (در حالی که تابلوی ۲ در سمت چپ جاده است) */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={100}>
                 <Card
                   dir="rtl"
@@ -508,8 +521,9 @@ export default function Landing() {
             </div>
           </div>
 
+          {/* کارت ۳: سمت چپ صفحه (در حالی که تابلوی ۳ در سمت راست جاده است) */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={150}>
                 <Card
                   dir="rtl"
@@ -533,8 +547,9 @@ export default function Landing() {
             </div>
           </div>
 
+          {/* کارت ۴: سمت راست صفحه (در حالی که تابلوی ۴ در سمت چپ جاده است) */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={200}>
                 <Card
                   dir="rtl"
@@ -558,8 +573,9 @@ export default function Landing() {
             </div>
           </div>
 
+          {/* کارت ۵: سمت چپ صفحه (در حالی که تابلوی ۵ در سمت راست جاده است) */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={250}>
                 <Card
                   dir="rtl"
@@ -583,8 +599,9 @@ export default function Landing() {
             </div>
           </div>
 
+          {/* کارت ۶: سمت راست صفحه */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={300}>
                 <Card
                   dir="rtl"

@@ -157,7 +157,7 @@ const teamMembers = [
     icon: Sparkles,
   },
   {
-    name: "مبینا برقمدی",
+    name: "مبینا برغمدی",
     role: "توسعه‌دهنده فرانت‌اند",
     stack: "Front-end Developer",
     icon: Settings2,
