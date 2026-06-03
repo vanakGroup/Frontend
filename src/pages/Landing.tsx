@@ -10,16 +10,17 @@ import {
   CreditCard,
   Target,
   Compass,
-  Zap,
   Lock,
   Cpu,
-  RefreshCw,
   BellRing,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+// --------------------------------------------------------
+// 1. Scroll Reveal Hook (انیمیشن نرم ورود المان‌ها)
+// --------------------------------------------------------
 function useIntersectionState() {
   const [hasRevealed, setHasRevealed] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -68,11 +69,18 @@ function ScrollReveal({
   );
 }
 
+// --------------------------------------------------------
+// 2. Main Landing Component
+// --------------------------------------------------------
 export default function Landing() {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
-  const [carStyle, setCarStyle] = useState<React.CSSProperties>({
-    transform: "translate(500px, 50px) rotate(90deg)",
+
+  // ذخیره مختصات ماشین در فضای viewBox بومی SVG (محدوده ۰ تا ۱۲۰۰ در طول ۲۸۰۰)
+  const [carPos, setCarPos] = useState({
+    x: 600,
+    y: 80,
+    angle: 90,
     opacity: 0,
   });
 
@@ -87,26 +95,30 @@ export default function Landing() {
       const containerTop = containerRef.current.offsetTop;
       const containerHeight = containerRef.current.offsetHeight;
 
+      // محاسبه میزان پیشرفت اسکرول بر اساس ارتفاع کل سکشن جاده
       const scrollProgress =
-        (window.scrollY - containerTop) /
-        (containerHeight - window.innerHeight);
+        (window.scrollY - containerTop + window.innerHeight * 0.3) /
+        (containerHeight - window.innerHeight * 0.5);
       const clampedProgress = Math.max(0, Math.min(1, scrollProgress));
 
+      // گرفتن مختصات دقیق روی مسیر SVG
       const point = path.getPointAtLength(clampedProgress * pathLength);
 
+      // محاسبه تانژانت زاویه مسیر جهت چرخش ۳۶۰ درجه طبیعی خودرو
       const nextPointOffset = Math.min(
         pathLength,
-        clampedProgress * pathLength + 2,
+        clampedProgress * pathLength + 5,
       );
       const nextPoint = path.getPointAtLength(nextPointOffset);
       const angle =
         Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) *
         (180 / Math.PI);
 
-      setCarStyle({
-        transform: `translate(${point.x}px, ${point.y}px) rotate(${angle}deg)`,
-        opacity: clampedProgress > 0.01 && clampedProgress < 0.99 ? 1 : 0,
-        transition: "transform 0.1s ease-out, opacity 0.3s ease",
+      setCarPos({
+        x: point.x,
+        y: point.y,
+        angle: angle,
+        opacity: clampedProgress > 0.005 && clampedProgress < 0.995 ? 1 : 0,
       });
     };
 
@@ -123,14 +135,14 @@ export default function Landing() {
   return (
     <div
       ref={containerRef}
-      className="w-full text-foreground bg-background font-sans relative min-h-screen flex flex-col justify-between"
+      className="w-full text-foreground bg-background font-sans relative min-h-screen flex flex-col justify-between overflow-hidden"
     >
-      {/* Dynamic Background Network Grid Pattern */}
+      {/* پترن مدرن شبکه‌ای هماهنگ با هویت بصری پروژه */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(21,145,220,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(21,145,220,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] -z-30"></div>
 
-      {/* Decorative Blur Ambient Lights */}
-      <div className="absolute top-1/4 left-1/10 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[140px] -z-20"></div>
-      <div className="absolute bottom-1/4 right-1/10 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[140px] -z-20"></div>
+      {/* هاله‌های نوری پس‌زمینه */}
+      <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[140px] -z-20"></div>
+      <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[140px] -z-20"></div>
 
       {/* --- HERO SECTION --- */}
       <section className="relative max-w-6xl mx-auto px-6 pt-24 pb-16 flex flex-col items-center text-center space-y-8 z-10">
@@ -158,7 +170,7 @@ export default function Landing() {
 
           <div className="mt-12 flex flex-wrap justify-center gap-5">
             <Link to="/login">
-              <Button className="bg-primary hover:bg-primary/95 text-primary-foreground text-base font-bold h-14 px-8 rounded-2xl shadow-lg shadow-primary/25 transition-all hover:-translate-y-1">
+              <Button className="bg-primary hover:bg-primary/95 text-primary-foreground text-base font-bold h-14 px-8 rounded-2xl shadow-lg shadow-primary/25 transition-all hover:-translate-y-1 cursor-pointer">
                 ورود به اپلیکیشن
                 <ArrowLeft className="mr-2 h-5 w-5" />
               </Button>
@@ -176,66 +188,150 @@ export default function Landing() {
       </section>
 
       {/* --- THE INTERACTIVE DEEP WINDING ROAD SECTION --- */}
-      <section className="relative max-w-6xl mx-auto px-6 py-20 w-full z-10 min-h-[2400px]">
-        {/* SVG Deep Road Track Container */}
-        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-full pointer-events-none z-0">
+      {/* جاده و خودرو همگی در یک SVG قرار دارند تا در گوشی و دسکتاپ ۱۰۰٪ بر یکدیگر منطبق باشند */}
+      <section className="relative max-w-6xl mx-auto px-4 md:px-6 py-20 w-full z-10 min-h-[2200px] md:min-h-[2800px]">
+        {/* SVG Deep Winding Road Container */}
+        <div className="absolute top-0 bottom-0 left-0 right-0 w-full h-full pointer-events-none z-0">
           <svg
             className="w-full h-full"
             preserveAspectRatio="none"
-            viewBox="0 0 1000 2400"
+            viewBox="0 0 1200 2800"
             fill="none"
           >
-            {/* Base Glowing Shadow of the Road */}
+            {/* ۱. لایه سایه زیرین جاده نئونی */}
             <path
-              d="M 500,50 C 900,200 900,450 500,500 C 100,550 100,800 500,850 C 900,900 900,1150 500,1200 C 100,1250 100,1500 500,1550 C 900,1600 900,1850 500,1900 C 100,1950 100,2200 500,2250"
+              d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
               fill="none"
               stroke="var(--primary)"
+              strokeWidth="130"
+              strokeLinecap="round"
+              className="opacity-5 dark:opacity-10 blur-2xl"
+            />
+
+            {/* ۲. بدنه اصلی آسفالت جاده */}
+            <path
+              d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
+              fill="none"
+              className="stroke-card dark:stroke-slate-900/80"
               strokeWidth="110"
               strokeLinecap="round"
-              className="opacity-5 dark:opacity-10 blur-xl"
             />
 
-            {/* Asphalt Main Path */}
-            <path
-              d="M 500,50 C 900,200 900,450 500,500 C 100,550 100,800 500,850 C 900,900 900,1150 500,1200 C 100,1250 100,1500 500,1550 C 900,1600 900,1850 500,1900 C 100,1950 100,2200 500,2250"
-              fill="none"
-              className="stroke-card border-border"
-              strokeWidth="90"
-              strokeLinecap="round"
-            />
-
-            {/* Middle Dashed Interactive Divider Line */}
+            {/* ۳. خط‌چین‌های وسط جاده (پدیده رادار حرکتی) */}
             <path
               ref={pathRef}
-              d="M 500,50 C 900,200 900,450 500,500 C 100,550 100,800 500,850 C 900,900 900,1150 500,1200 C 100,1250 100,1500 500,1550 C 900,1600 900,1850 500,1900 C 100,1950 100,2200 500,2250"
+              d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
               fill="none"
-              className="stroke-primary/30 dark:stroke-primary/50"
-              strokeWidth="3"
-              strokeDasharray="16 20"
+              className="stroke-primary/30 dark:stroke-primary/60"
+              strokeWidth="4"
+              strokeDasharray="20 25"
               strokeLinecap="round"
             />
-          </svg>
 
-          {/* Scroll-Animate Interactive Car */}
-          <div
-            style={carStyle}
-            className="absolute top-0 left-0 w-16 h-16 -ml-8 -mt-8 flex items-center justify-center z-20 pointer-events-none"
-          >
-            <div className="bg-primary text-primary-foreground p-3 rounded-2xl shadow-xl shadow-primary/50 border-2 border-background flex items-center justify-center relative">
-              <Car className="w-6 h-6 animate-pulse" />
-              {/* Radar pulse effect */}
-              <span className="absolute inset-0 rounded-2xl border border-primary animate-ping opacity-60"></span>
-            </div>
-          </div>
+            {/* ۴. ماشین اسپورت و مدرن به صورت لایه بومی SVG */}
+            <g
+              transform={`translate(${carPos.x}, ${carPos.y}) rotate(${carPos.angle})`}
+              style={{
+                opacity: carPos.opacity,
+                transition: "transform 0.08s ease-out, opacity 0.3s ease",
+              }}
+            >
+              {/* افکت درخشش نئونی ماشین */}
+              <circle
+                r="35"
+                fill="var(--primary)"
+                opacity="0.15"
+                className="animate-ping"
+              />
+
+              {/* بدنه کلی خودرو (رو به جلو جهت‌دهی شده تا در انحناها سر و ته نشود) */}
+              <g transform="translate(-25, -12)">
+                {/* چرخ‌های جلو و عقب */}
+                <rect
+                  x="4"
+                  y="-3"
+                  width="10"
+                  height="4"
+                  rx="1"
+                  fill="#1e293b"
+                />
+                <rect
+                  x="36"
+                  y="-3"
+                  width="10"
+                  height="4"
+                  rx="1"
+                  fill="#1e293b"
+                />
+                <rect
+                  x="4"
+                  y="23"
+                  width="10"
+                  height="4"
+                  rx="1"
+                  fill="#1e293b"
+                />
+                <rect
+                  x="36"
+                  y="23"
+                  width="10"
+                  height="4"
+                  rx="1"
+                  fill="#1e293b"
+                />
+
+                {/* شاسی اصلی خودرو اسپورت */}
+                <rect
+                  x="0"
+                  y="0"
+                  width="50"
+                  height="24"
+                  rx="6"
+                  fill="var(--primary)"
+                  className="stroke-white/25"
+                  strokeWidth="1.5"
+                />
+
+                {/* شیشه‌ها و کابین مسافر */}
+                <rect
+                  x="14"
+                  y="3"
+                  width="22"
+                  height="18"
+                  rx="4"
+                  fill="#0f172a"
+                />
+                <path
+                  d="M 17,3 L 33,3 L 35,10 L 15,10 Z"
+                  fill="#38bdf8"
+                  opacity="0.8"
+                />
+
+                {/* چراغ‌های جلو ال‌ای‌دی زرد */}
+                <polygon points="46,4 49,5 49,8 46,7" fill="#fbbf24" />
+                <polygon points="46,20 49,19 49,16 46,17" fill="#fbbf24" />
+
+                {/* اسپویلر عقب خودرو */}
+                <rect
+                  x="-2"
+                  y="2"
+                  width="4"
+                  height="20"
+                  rx="1"
+                  fill="var(--secondary)"
+                />
+              </g>
+            </g>
+          </svg>
         </div>
 
-        {/* --- DYNAMIC INTERACTIVE CONTENT NODES (Alternating Left/Right layout) --- */}
-        <div className="relative w-full space-y-36 pt-16">
-          {/* Node 1: Right Side */}
+        {/* --- DYNAMIC INTERACTIVE CONTENT NODES (ریسپانسیو کامل بر اساس فلو تلویند) --- */}
+        <div className="relative w-full space-y-48 md:space-y-64 pt-16">
+          {/* Node 1: Right Side on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal>
-                <Card className="p-8 bg-card/75 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
+                <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge
                       variant="outline"
@@ -243,17 +339,19 @@ export default function Landing() {
                     >
                       پارکینگ‌های اختصاصی
                     </Badge>
-                    <span className="text-5xl font-black opacity-10">۰۱</span>
+                    <span className="text-4xl md:text-5xl font-black opacity-10">
+                      ۰۱
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
                       <Compass className="w-5 h-5" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">
                       مکان‌یابی هوشمند آنی
                     </h3>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-justify">
                     پلتفرم ونک با استفاده از الگوریتم‌های پیشرفته مسیریابی،
                     نزدیک‌ترین و ارزان‌ترین جای پارک خالی در محدوده مورد نظر شما
                     را ثانیه‌ای و دقیق روی نقشه نمایش می‌دهد.
@@ -263,11 +361,11 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 2: Left Side */}
+          {/* Node 2: Left Side on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={100}>
-                <Card className="p-8 bg-card/75 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
+                <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge
                       variant="outline"
@@ -275,17 +373,19 @@ export default function Landing() {
                     >
                       تکنولوژی قفل
                     </Badge>
-                    <span className="text-5xl font-black opacity-10">۰۲</span>
+                    <span className="text-4xl md:text-5xl font-black opacity-10">
+                      ۰۲
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
-                      <Lock className="w-5 h-5" />
+                      <Target className="w-5 h-5" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">
                       قفل هوشمند و کنترل دیجیتال
                     </h3>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-justify">
                     برقراری ارتباط مستقیم با قفل‌های سخت‌افزاری و مکانیزه نصب
                     شده در جایگاه‌ها. باز و بسته کردن موانع فیزیکی پارکینگ‌ها به
                     صورت خودکار تنها با فشردن دکمه داخل اپلیکیشن.
@@ -295,11 +395,11 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 3: Right Side */}
+          {/* Node 3: Right Side on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10">
-              <ScrollReveal delay={200}>
-                <Card className="p-8 bg-card/75 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+              <ScrollReveal delay={150}>
+                <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge
                       variant="outline"
@@ -307,17 +407,19 @@ export default function Landing() {
                     >
                       امنیت حریم خصوصی
                     </Badge>
-                    <span className="text-5xl font-black opacity-10">۰۳</span>
+                    <span className="text-4xl md:text-5xl font-black opacity-10">
+                      ۰۳
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">
                       احراز هویت دومرحله‌ای ایمن
                     </h3>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-justify">
                     ثبت هویت راننده و مالک با امنیت سطح بالا. ورود و خروج
                     خودروها به وسیله صدور بارکد موقت و کدهای امنیتی ثبت‌شده برای
                     محافظت کامل از حریم خصوصی افراد در پارکینگ‌های شخصی.
@@ -327,11 +429,11 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 4: Left Side */}
+          {/* Node 4: Left Side on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10">
-              <ScrollReveal delay={300}>
-                <Card className="p-8 bg-card/75 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+              <ScrollReveal delay={200}>
+                <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge
                       variant="outline"
@@ -339,17 +441,19 @@ export default function Landing() {
                     >
                       تراکنش‌های شفاف
                     </Badge>
-                    <span className="text-5xl font-black opacity-10">۰۴</span>
+                    <span className="text-4xl md:text-5xl font-black opacity-10">
+                      ۰۴
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
                       <CreditCard className="w-5 h-5" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">
                       کیف پول و تسویه حساب فوری
                     </h3>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-justify">
                     تسویه حساب کاملاً شفاف مالی و آنلاین با مالکان پارکینگ‌ها.
                     درآمد حاصل از به اشتراک‌گذاری در کمترین زمان به صورت مستقیم
                     به کیف پول الکترونیکی و شماره شبای مالکان منتقل خواهد شد.
@@ -359,11 +463,11 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 5: Right Side */}
+          {/* Node 5: Right Side on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10">
-              <ScrollReveal delay={400}>
-                <Card className="p-8 bg-card/75 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+              <ScrollReveal delay={250}>
+                <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge
                       variant="outline"
@@ -371,17 +475,19 @@ export default function Landing() {
                     >
                       نوتیفیکیشن لحظه‌ای
                     </Badge>
-                    <span className="text-5xl font-black opacity-10">۰۵</span>
+                    <span className="text-4xl md:text-5xl font-black opacity-10">
+                      ۰۵
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
                       <BellRing className="w-5 h-5" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">
                       سیستم مانیتورینگ آنلاین
                     </h3>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-justify">
                     ارسال آنی پیامک، نوتیفیکیشن و تصویر ورود راننده به محض تایید
                     پارکینگ. مالکان در هر لحظه می‌توانند از طریق داشبورد
                     مدیریتی، جریان ترافیکی پارکینگ خود را مانیتور کنند.
@@ -391,11 +497,11 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 6: Left Side */}
+          {/* Node 6: Left Side on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10">
-              <ScrollReveal delay={500}>
-                <Card className="p-8 bg-card/75 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+              <ScrollReveal delay={300}>
+                <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge
                       variant="outline"
@@ -403,17 +509,19 @@ export default function Landing() {
                     >
                       توسعه بومی
                     </Badge>
-                    <span className="text-5xl font-black opacity-10">۰۶</span>
+                    <span className="text-4xl md:text-5xl font-black opacity-10">
+                      ۰۶
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
                       <Cpu className="w-5 h-5" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg md:text-xl font-bold text-foreground">
                       معماری ابری دانشگاهی
                     </h3>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">
+                  <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-justify">
                     طراحی‌شده و توسعه‌یافته با استانداردهای دانشگاه علم و صنعت
                     ایران. زیرساخت ابری ونک برای پردازش همزمان هزاران درخواست
                     بدون تاخیر (Latency) بهینه‌سازی شده است.
@@ -443,7 +551,7 @@ export default function Landing() {
 
               <div className="flex flex-wrap gap-4 shrink-0">
                 <Link to="/login">
-                  <Button className="bg-primary hover:bg-primary/95 text-primary-foreground font-bold h-12 px-6 rounded-xl flex items-center gap-2 shadow-md">
+                  <Button className="bg-primary hover:bg-primary/95 text-primary-foreground font-bold h-12 px-6 rounded-xl flex items-center gap-2 shadow-md cursor-pointer">
                     ثبت‌نام و ورود سریع
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
@@ -451,7 +559,7 @@ export default function Landing() {
                 <Link to="/contactus">
                   <Button
                     variant="outline"
-                    className="border-border hover:bg-muted text-foreground h-12 px-6 rounded-xl font-bold flex items-center gap-2"
+                    className="border-border hover:bg-muted text-foreground h-12 px-6 rounded-xl font-bold flex items-center gap-2 cursor-pointer"
                   >
                     ارتباط با پشتیبانی
                   </Button>
