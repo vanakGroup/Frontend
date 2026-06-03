@@ -6,6 +6,7 @@ import { DesktopSideBar } from "../../components/Custom/DesktopSideBar";
 import { MobileSideBar } from "../../components/Custom/MobileSideBar";
 import { useSidebarStore } from "../../store/sidebarStore/sidebarStore";
 import { Home, Layers, Info, Phone } from "lucide-react";
+import Footer from "@/components/Custom/Footer";
 
 const PublicLayout = () => {
   const { isExpanded } = useSidebarStore();
@@ -29,6 +30,7 @@ const PublicLayout = () => {
     { label: "داشبورد", to: "/login", icon: <Home size={20} /> },
     { label: "blank", to: "/blank", icon: <Layers size={20} /> },
   ];
+  const shouldShowFooter = shouldShowNavbar && !isDashboardPage;
 
   return (
     <>
@@ -57,15 +59,19 @@ const PublicLayout = () => {
         </>
       )}
 
-      {}
       <main
         className={`
           min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out
+          flex flex-col
           pt-0 pb-28 ${shouldShowNavbar ? "md:pt-16 md:pb-0" : "md:pt-0 md:pb-0"}
           ${shouldShowNavbar && isDashboardPage && isExpanded ? "md:pr-64 pr-0" : "pr-0"}
         `}
       >
-        <Outlet />
+        <div className="flex-grow ">
+          <Outlet />
+        </div>
+
+        {shouldShowFooter && <Footer />}
       </main>
     </>
   );
