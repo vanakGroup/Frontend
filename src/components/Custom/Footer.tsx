@@ -92,7 +92,7 @@ export default function Footer() {
 
                 <span className="text-white/80 leading-relaxed">
                   تهران، میدان رسالت، خیابان دانشگاه علم و صنعت، دانشکده مهندسی
-                  کامپیوتر (PGR4+JWH)
+                  کامپیوتر
                 </span>
               </li>
 

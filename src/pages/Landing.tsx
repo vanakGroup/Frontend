@@ -595,13 +595,12 @@ export default function Landing() {
                       <Cpu className="h-5 w-5" />
                     </div>
                     <h3 className="text-lg md:text-xl font-bold text-foreground text-right w-full">
-                      پردازش تصویر و پلاک‌خوان هوشمند
+                      سیستم کاملا هوشمند
                     </h3>
                   </div>
                   <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-justify text-right w-full">
-                    مجهز به سیستم پردازش تصویر پیشرفته برای تشخیص آنی پلاک
-                    خودروها. بدون نیاز به توقف، پلاک شما هنگام ورود اسکن شده و
-                    گیت هوشمند به طور خودکار باز می‌شود.
+                    مجهز به سیستم پیشرفته برای راحتی استفاده و کارایی بالا از
+                    جمله کنترل های از راه دور و تشخیص پلاک
                   </p>
                 </Card>
               </ScrollReveal>
