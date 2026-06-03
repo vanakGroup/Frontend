@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
-  Car,
   ChevronLeft,
   Sparkles,
   ArrowLeft,
@@ -10,7 +9,6 @@ import {
   CreditCard,
   Target,
   Compass,
-  Lock,
   Cpu,
   BellRing,
 } from "lucide-react";
@@ -91,23 +89,22 @@ export default function Landing() {
       const path = pathRef.current;
       const pathLength = path.getTotalLength();
 
-      const containerRect = containerRef.current.getBoundingClientRect();
       const containerTop = containerRef.current.offsetTop;
       const containerHeight = containerRef.current.offsetHeight;
 
-      // محاسبه میزان پیشرفت اسکرول بر اساس ارتفاع کل سکشن جاده
+      // محاسبه دقیق پیشرفت اسکرول بر اساس لایوت جاده
       const scrollProgress =
         (window.scrollY - containerTop + window.innerHeight * 0.3) /
         (containerHeight - window.innerHeight * 0.5);
       const clampedProgress = Math.max(0, Math.min(1, scrollProgress));
 
-      // گرفتن مختصات دقیق روی مسیر SVG
+      // دریافت نقطه متناظر در طول مسیر جاده
       const point = path.getPointAtLength(clampedProgress * pathLength);
 
-      // محاسبه تانژانت زاویه مسیر جهت چرخش ۳۶۰ درجه طبیعی خودرو
+      // محاسبه زاویه چرخش تانژانت ۳۶۰ درجه برای چرخش طبیعی خودرو
       const nextPointOffset = Math.min(
         pathLength,
-        clampedProgress * pathLength + 5,
+        clampedProgress * pathLength + 6,
       );
       const nextPoint = path.getPointAtLength(nextPointOffset);
       const angle =
@@ -188,17 +185,17 @@ export default function Landing() {
       </section>
 
       {/* --- THE INTERACTIVE DEEP WINDING ROAD SECTION --- */}
-      {/* جاده و خودرو همگی در یک SVG قرار دارند تا در گوشی و دسکتاپ ۱۰۰٪ بر یکدیگر منطبق باشند */}
+      {/* جاده و خودرو در عرض ثابت ۱۲۰۰ پیکسل قفل شده‌اند تا در تمام دستگاه‌ها نسبت طلایی خود را حفظ کنند */}
       <section className="relative max-w-6xl mx-auto px-4 md:px-6 py-20 w-full z-10 min-h-[2200px] md:min-h-[2800px]">
         {/* SVG Deep Winding Road Container */}
-        <div className="absolute top-0 bottom-0 left-0 right-0 w-full h-full pointer-events-none z-0">
+        <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1200px] h-full pointer-events-none z-0">
           <svg
             className="w-full h-full"
             preserveAspectRatio="none"
             viewBox="0 0 1200 2800"
             fill="none"
           >
-            {/* ۱. لایه سایه زیرین جاده نئونی */}
+            {/* ۱. لایه سایه نئونی زیرین جاده */}
             <path
               d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
               fill="none"
@@ -212,12 +209,12 @@ export default function Landing() {
             <path
               d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
               fill="none"
-              className="stroke-card dark:stroke-slate-900/80"
+              className="stroke-card dark:stroke-slate-900/85"
               strokeWidth="110"
               strokeLinecap="round"
             />
 
-            {/* ۳. خط‌چین‌های وسط جاده (پدیده رادار حرکتی) */}
+            {/* ۳. خط‌چین‌های وسط جاده */}
             <path
               ref={pathRef}
               d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
@@ -228,7 +225,174 @@ export default function Landing() {
               strokeLinecap="round"
             />
 
-            {/* ۴. ماشین اسپورت و مدرن به صورت لایه بومی SVG */}
+            {/* ۴. تابلوهای پارکینگ (P) تعبیه شده در کناره‌های جاده */}
+            {/* تابلوی ۱ */}
+            <g transform="translate(1060, 280)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="5"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-18"
+                y="-36"
+                width="36"
+                height="36"
+                rx="8"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <text
+                x="0"
+                y="-12"
+                fill="white"
+                fontSize="22"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+            {/* تابلوی ۲ */}
+            <g transform="translate(140, 700)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="5"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-18"
+                y="-36"
+                width="36"
+                height="36"
+                rx="8"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <text
+                x="0"
+                y="-12"
+                fill="white"
+                fontSize="22"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+            {/* تابلوی ۳ */}
+            <g transform="translate(1060, 1100)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="5"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-18"
+                y="-36"
+                width="36"
+                height="36"
+                rx="8"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <text
+                x="0"
+                y="-12"
+                fill="white"
+                fontSize="22"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+            {/* تابلوی ۴ */}
+            <g transform="translate(140, 1550)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="5"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-18"
+                y="-36"
+                width="36"
+                height="36"
+                rx="8"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <text
+                x="0"
+                y="-12"
+                fill="white"
+                fontSize="22"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+            {/* تابلوی ۵ */}
+            <g transform="translate(1060, 2000)">
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="40"
+                stroke="#94a3b8"
+                strokeWidth="5"
+                strokeLinecap="round"
+              />
+              <rect
+                x="-18"
+                y="-36"
+                width="36"
+                height="36"
+                rx="8"
+                fill="var(--primary)"
+                stroke="white"
+                strokeWidth="3"
+              />
+              <text
+                x="0"
+                y="-12"
+                fill="white"
+                fontSize="22"
+                fontWeight="900"
+                textAnchor="middle"
+                fontFamily="sans-serif"
+              >
+                P
+              </text>
+            </g>
+
+            {/* ۵. ماشین اسپورت و مدرن به صورت لایه بومی SVG */}
             <g
               transform={`translate(${carPos.x}, ${carPos.y}) rotate(${carPos.angle})`}
               style={{
@@ -236,7 +400,6 @@ export default function Landing() {
                 transition: "transform 0.08s ease-out, opacity 0.3s ease",
               }}
             >
-              {/* افکت درخشش نئونی ماشین */}
               <circle
                 r="35"
                 fill="var(--primary)"
@@ -244,9 +407,7 @@ export default function Landing() {
                 className="animate-ping"
               />
 
-              {/* بدنه کلی خودرو (رو به جلو جهت‌دهی شده تا در انحناها سر و ته نشود) */}
               <g transform="translate(-25, -12)">
-                {/* چرخ‌های جلو و عقب */}
                 <rect
                   x="4"
                   y="-3"
@@ -280,7 +441,6 @@ export default function Landing() {
                   fill="#1e293b"
                 />
 
-                {/* شاسی اصلی خودرو اسپورت */}
                 <rect
                   x="0"
                   y="0"
@@ -292,7 +452,6 @@ export default function Landing() {
                   strokeWidth="1.5"
                 />
 
-                {/* شیشه‌ها و کابین مسافر */}
                 <rect
                   x="14"
                   y="3"
@@ -307,11 +466,9 @@ export default function Landing() {
                   opacity="0.8"
                 />
 
-                {/* چراغ‌های جلو ال‌ای‌دی زرد */}
                 <polygon points="46,4 49,5 49,8 46,7" fill="#fbbf24" />
                 <polygon points="46,20 49,19 49,16 46,17" fill="#fbbf24" />
 
-                {/* اسپویلر عقب خودرو */}
                 <rect
                   x="-2"
                   y="2"
@@ -325,11 +482,11 @@ export default function Landing() {
           </svg>
         </div>
 
-        {/* --- DYNAMIC INTERACTIVE CONTENT NODES (ریسپانسیو کامل بر اساس فلو تلویند) --- */}
+        {/* --- DYNAMIC INTERACTIVE CONTENT NODES (توزیع معکوس جهت عدم تداخل با منحنی‌های جاده) --- */}
         <div className="relative w-full space-y-48 md:space-y-64 pt-16">
-          {/* Node 1: Right Side on Desktop */}
+          {/* Node 1: Left Side (چون جاده در این محدوده به سمت راست مایل است) */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal>
                 <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
@@ -361,9 +518,9 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 2: Left Side on Desktop */}
+          {/* Node 2: Right Side (چون جاده در این محدوده به سمت چپ مایل است) */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={100}>
                 <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
@@ -395,9 +552,9 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 3: Right Side on Desktop */}
+          {/* Node 3: Left Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={150}>
                 <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
@@ -429,9 +586,9 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 4: Left Side on Desktop */}
+          {/* Node 4: Right Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={200}>
                 <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
@@ -463,9 +620,9 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 5: Right Side on Desktop */}
+          {/* Node 5: Left Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={250}>
                 <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
@@ -497,9 +654,9 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 6: Left Side on Desktop */}
+          {/* Node 6: Right Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
-            <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
+            <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={300}>
                 <Card className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4">
                   <div className="flex items-center justify-between">
