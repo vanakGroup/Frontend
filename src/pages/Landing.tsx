@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
-  ChevronLeft,
   Sparkles,
   ArrowLeft,
   ShieldCheck,
-  Search,
+  Compass,
   CreditCard,
   Target,
-  Compass,
   Cpu,
   BellRing,
 } from "lucide-react";
@@ -17,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 // --------------------------------------------------------
-// 1. Scroll Reveal Hook (انیمیشن نرم ورود المان‌ها)
+// 1. Scroll Reveal Hook
 // --------------------------------------------------------
 function useIntersectionState() {
   const [hasRevealed, setHasRevealed] = useState(false);
@@ -74,7 +72,6 @@ export default function Landing() {
   const containerRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
 
-  // ذخیره مختصات ماشین در فضای viewBox بومی SVG (محدوده ۰ تا ۱۲۰۰ در طول ۲۸۰۰)
   const [carPos, setCarPos] = useState({
     x: 600,
     y: 80,
@@ -92,16 +89,12 @@ export default function Landing() {
       const containerTop = containerRef.current.offsetTop;
       const containerHeight = containerRef.current.offsetHeight;
 
-      // محاسبه دقیق پیشرفت اسکرول بر اساس لایوت جاده
       const scrollProgress =
         (window.scrollY - containerTop + window.innerHeight * 0.3) /
         (containerHeight - window.innerHeight * 0.5);
       const clampedProgress = Math.max(0, Math.min(1, scrollProgress));
 
-      // دریافت نقطه متناظر در طول مسیر جاده
       const point = path.getPointAtLength(clampedProgress * pathLength);
-
-      // محاسبه زاویه چرخش تانژانت ۳۶۰ درجه برای چرخش طبیعی خودرو
       const nextPointOffset = Math.min(
         pathLength,
         clampedProgress * pathLength + 6,
@@ -135,10 +128,8 @@ export default function Landing() {
       dir="rtl"
       className="w-full text-foreground bg-background font-sans relative min-h-screen flex flex-col justify-between overflow-hidden rtl"
     >
-      {/* پترن مدرن شبکه‌ای هماهنگ با هویت بصری پروژه */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(21,145,220,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(21,145,220,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] -z-30"></div>
 
-      {/* هاله‌های نوری پس‌زمینه */}
       <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[140px] -z-20"></div>
       <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[140px] -z-20"></div>
 
@@ -187,7 +178,6 @@ export default function Landing() {
 
       {/* --- THE INTERACTIVE DEEP WINDING ROAD SECTION --- */}
       <section className="relative max-w-6xl mx-auto px-4 md:px-6 py-20 w-full z-10 min-h-[2200px] md:min-h-[2800px]">
-        {/* SVG Deep Winding Road Container */}
         <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-[1200px] h-full pointer-events-none z-0">
           <svg
             className="w-full h-full"
@@ -195,7 +185,6 @@ export default function Landing() {
             viewBox="0 0 1200 2800"
             fill="none"
           >
-            {/* ۱. لایه سایه نئونی زیرین جاده */}
             <path
               d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
               fill="none"
@@ -204,8 +193,6 @@ export default function Landing() {
               strokeLinecap="round"
               className="opacity-5 dark:opacity-10 blur-2xl"
             />
-
-            {/* ۲. بدنه اصلی آسفالت جاده */}
             <path
               d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
               fill="none"
@@ -213,8 +200,6 @@ export default function Landing() {
               strokeWidth="110"
               strokeLinecap="round"
             />
-
-            {/* ۳. خط‌چین‌های وسط جاده */}
             <path
               ref={pathRef}
               d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
@@ -225,7 +210,7 @@ export default function Landing() {
               strokeLinecap="round"
             />
 
-            {/* ۴. تابلوهای پارکینگ (P) تعبیه شده در کناره‌های جاده */}
+            {/* Parking Icons (Increased size for mobile visibility) */}
             <g transform="translate(1060, 280)">
               <line
                 x1="0"
@@ -233,24 +218,24 @@ export default function Landing() {
                 x2="0"
                 y2="40"
                 stroke="#94a3b8"
-                strokeWidth="5"
+                strokeWidth="6"
                 strokeLinecap="round"
               />
               <rect
-                x="-18"
-                y="-36"
-                width="36"
-                height="36"
-                rx="8"
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
                 fill="var(--primary)"
                 stroke="white"
-                strokeWidth="3"
+                strokeWidth="4"
               />
               <text
                 x="0"
-                y="-12"
+                y="-16"
                 fill="white"
-                fontSize="22"
+                fontSize="40"
                 fontWeight="900"
                 textAnchor="middle"
                 fontFamily="sans-serif"
@@ -265,24 +250,24 @@ export default function Landing() {
                 x2="0"
                 y2="40"
                 stroke="#94a3b8"
-                strokeWidth="5"
+                strokeWidth="6"
                 strokeLinecap="round"
               />
               <rect
-                x="-18"
-                y="-36"
-                width="36"
-                height="36"
-                rx="8"
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
                 fill="var(--primary)"
                 stroke="white"
-                strokeWidth="3"
+                strokeWidth="4"
               />
               <text
                 x="0"
-                y="-12"
+                y="-16"
                 fill="white"
-                fontSize="22"
+                fontSize="40"
                 fontWeight="900"
                 textAnchor="middle"
                 fontFamily="sans-serif"
@@ -297,24 +282,24 @@ export default function Landing() {
                 x2="0"
                 y2="40"
                 stroke="#94a3b8"
-                strokeWidth="5"
+                strokeWidth="6"
                 strokeLinecap="round"
               />
               <rect
-                x="-18"
-                y="-36"
-                width="36"
-                height="36"
-                rx="8"
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
                 fill="var(--primary)"
                 stroke="white"
-                strokeWidth="3"
+                strokeWidth="4"
               />
               <text
                 x="0"
-                y="-12"
+                y="-16"
                 fill="white"
-                fontSize="22"
+                fontSize="40"
                 fontWeight="900"
                 textAnchor="middle"
                 fontFamily="sans-serif"
@@ -329,24 +314,24 @@ export default function Landing() {
                 x2="0"
                 y2="40"
                 stroke="#94a3b8"
-                strokeWidth="5"
+                strokeWidth="6"
                 strokeLinecap="round"
               />
               <rect
-                x="-18"
-                y="-36"
-                width="36"
-                height="36"
-                rx="8"
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
                 fill="var(--primary)"
                 stroke="white"
-                strokeWidth="3"
+                strokeWidth="4"
               />
               <text
                 x="0"
-                y="-12"
+                y="-16"
                 fill="white"
-                fontSize="22"
+                fontSize="40"
                 fontWeight="900"
                 textAnchor="middle"
                 fontFamily="sans-serif"
@@ -361,24 +346,24 @@ export default function Landing() {
                 x2="0"
                 y2="40"
                 stroke="#94a3b8"
-                strokeWidth="5"
+                strokeWidth="6"
                 strokeLinecap="round"
               />
               <rect
-                x="-18"
-                y="-36"
-                width="36"
-                height="36"
-                rx="8"
+                x="-30"
+                y="-60"
+                width="60"
+                height="60"
+                rx="12"
                 fill="var(--primary)"
                 stroke="white"
-                strokeWidth="3"
+                strokeWidth="4"
               />
               <text
                 x="0"
-                y="-12"
+                y="-16"
                 fill="white"
-                fontSize="22"
+                fontSize="40"
                 fontWeight="900"
                 textAnchor="middle"
                 fontFamily="sans-serif"
@@ -387,7 +372,6 @@ export default function Landing() {
               </text>
             </g>
 
-            {/* ۵. ماشین اسپورت و مدرن به صورت لایه بومی SVG */}
             <g
               transform={`translate(${carPos.x}, ${carPos.y}) rotate(${carPos.angle})`}
               style={{
@@ -455,11 +439,6 @@ export default function Landing() {
                   rx="4"
                   fill="#0f172a"
                 />
-                <path
-                  d="M 17,3 L 33,3 L 35,10 L 15,10 Z"
-                  fill="#38bdf8"
-                  opacity="0.8"
-                />
 
                 <polygon points="46,4 49,5 49,8 46,7" fill="#fbbf24" />
                 <polygon points="46,20 49,19 49,16 46,17" fill="#fbbf24" />
@@ -477,9 +456,8 @@ export default function Landing() {
           </svg>
         </div>
 
-        {/* --- DYNAMIC INTERACTIVE CONTENT NODES (توزیع معکوس و راست‌چین اجباری) --- */}
+        {/* --- DYNAMIC INTERACTIVE CONTENT NODES --- */}
         <div className="relative w-full space-y-48 md:space-y-64 pt-16">
-          {/* Node 1: Left Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
             <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal>
@@ -487,17 +465,6 @@ export default function Landing() {
                   dir="rtl"
                   className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4 text-right rtl"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary border-primary/20 text-xs"
-                    >
-                      پارکینگ‌های اختصاصی
-                    </Badge>
-                    <span className="text-4xl md:text-5xl font-black opacity-10">
-                      ۰۱
-                    </span>
-                  </div>
                   <div className="flex items-center gap-3 justify-start w-full">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
                       <Compass className="h-5 w-5" />
@@ -516,7 +483,6 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 2: Right Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
             <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={100}>
@@ -524,17 +490,6 @@ export default function Landing() {
                   dir="rtl"
                   className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4 text-right rtl"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary border-primary/20 text-xs"
-                    >
-                      تکنولوژی قفل
-                    </Badge>
-                    <span className="text-4xl md:text-5xl font-black opacity-10">
-                      ۰۲
-                    </span>
-                  </div>
                   <div className="flex items-center gap-3 justify-start w-full">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
                       <Target className="h-5 w-5" />
@@ -553,7 +508,6 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 3: Left Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
             <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={150}>
@@ -561,17 +515,6 @@ export default function Landing() {
                   dir="rtl"
                   className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4 text-right rtl"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary border-primary/20 text-xs"
-                    >
-                      امنیت حریم خصوصی
-                    </Badge>
-                    <span className="text-4xl md:text-5xl font-black opacity-10">
-                      ۰۳
-                    </span>
-                  </div>
                   <div className="flex items-center gap-3 justify-start w-full">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
                       <ShieldCheck className="h-5 w-5" />
@@ -590,7 +533,6 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 4: Right Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
             <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={200}>
@@ -598,17 +540,6 @@ export default function Landing() {
                   dir="rtl"
                   className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4 text-right rtl"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary border-primary/20 text-xs"
-                    >
-                      تراکنش‌های شفاف
-                    </Badge>
-                    <span className="text-4xl md:text-5xl font-black opacity-10">
-                      ۰۴
-                    </span>
-                  </div>
                   <div className="flex items-center gap-3 justify-start w-full">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
                       <CreditCard className="h-5 w-5" />
@@ -627,7 +558,6 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 5: Left Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
             <div className="md:col-start-1 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={250}>
@@ -635,17 +565,6 @@ export default function Landing() {
                   dir="rtl"
                   className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4 text-right rtl"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary border-primary/20 text-xs"
-                    >
-                      نوتیفیکیشن لحظه‌ای
-                    </Badge>
-                    <span className="text-4xl md:text-5xl font-black opacity-10">
-                      ۰۵
-                    </span>
-                  </div>
                   <div className="flex items-center gap-3 justify-start w-full">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
                       <BellRing className="h-5 w-5" />
@@ -664,7 +583,6 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Node 6: Right Side */}
           <div className="grid grid-cols-1 md:grid-cols-12 w-full items-center relative">
             <div className="md:col-start-8 md:col-span-5 relative z-10 px-2 md:px-0">
               <ScrollReveal delay={300}>
@@ -672,17 +590,6 @@ export default function Landing() {
                   dir="rtl"
                   className="p-6 md:p-8 bg-card/85 backdrop-blur-md border border-border/80 rounded-3xl hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 space-y-4 text-right rtl"
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <Badge
-                      variant="outline"
-                      className="bg-primary/10 text-primary border-primary/20 text-xs"
-                    >
-                      هوش مصنوعی دانشگاهی
-                    </Badge>
-                    <span className="text-4xl md:text-5xl font-black opacity-10">
-                      ۰۶
-                    </span>
-                  </div>
                   <div className="flex items-center gap-3 justify-start w-full">
                     <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
                       <Cpu className="h-5 w-5" />
