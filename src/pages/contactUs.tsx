@@ -144,7 +144,7 @@ export default function ContactUs() {
                   پشتیبانی و مکاتبات دیجیتال
                 </h4>
                 <a
-                  href="mailto:vanak@comp.iust.ac.ir"
+                  href="mailto:contact@vanak.com"
                   className="text-sm text-primary font-bold block tracking-wide hover:underline text-left ltr"
                 >
                   contact@vanak.com
@@ -166,7 +166,7 @@ export default function ContactUs() {
                   تماس تلفنی (ساعات اداری)
                 </h4>
                 <span className="text-sm text-foreground/90 font-bold block tracking-wider text-left ltr">
-                  +98 21 77300000
+                  <a href="tel:02177300000">+98 21 7730000</a>
                 </span>
                 <p className="text-xs text-muted-foreground">
                   شنبه تا چهارشنبه از ساعت ۸:۰۰ الی ۱۵:۳۰

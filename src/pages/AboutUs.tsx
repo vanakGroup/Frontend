@@ -31,6 +31,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
 
 // Custom Intersection Observer Hook for Scroll Reveal
 function useIntersectionState() {
@@ -47,7 +48,7 @@ function useIntersectionState() {
           }
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (ref.current) {
@@ -70,7 +71,11 @@ interface ScrollRevealProps {
   delay?: number;
 }
 
-function ScrollReveal({ children, className = "", delay = 0 }: ScrollRevealProps) {
+function ScrollReveal({
+  children,
+  className = "",
+  delay = 0,
+}: ScrollRevealProps) {
   const [ref, isVisible] = useIntersectionState();
 
   return (
@@ -95,9 +100,9 @@ const faqs = [
       "ونک یک سیستم هوشمند به اشتراک‌گذاری پارکینگ خصوصی است. مالکانی که در بازه‌های زمانی خاصی از پارکینگ شخصی خود استفاده نمی‌کنند، آن را در سیستم ثبت می‌نمایند. رانندگان نیازمند جای پارک نیز می‌توانند از طریق اپلیکیشن، نزدیک‌ترین فضا را بیابند و به صورت ساعتی، روزانه یا ماهانه رزرو کنند.",
   },
   {
-    question: "چرا تمرکز اولیه پروژه روی محله ونک تهران است؟",
+    question: "چرا تمرکز اولیه پروژه روی شهر تهران است؟",
     answer:
-      "منطقه ونک به عنوان یکی از قطب‌های اداری، تجاری و پرتردد تهران، روزانه با چالش فوق‌العاده جدی پارک و ترافیک دست‌وپنجه نرم می‌کند. ایده اولیه ما حل علمی این گره ترافیکی در محله ونک بود که در فازهای بعدی به تمام نقاط کلان‌شهر تهران و سراسر کشور تعمیم داده خواهد شد.",
+      "تهران یک کلان شهر بسیار پرتردد و دارای کمبود جای پارک میباشد. این پلتفرم به طور آزمایشی ابتدا در شهر تهران اجرا میشود و در صورت موفقیت و عبور از چالش های پیش رو در شهر های دیگر کشور نیز در دسترس قرار خواهد گرفت.",
   },
   {
     question: "چگونه امنیت پارکینگ برای مالکان تضمین می‌شود؟",
@@ -127,7 +132,7 @@ const timelineSteps = [
   {
     step: "۰۳",
     title: "کد عبور امنیتی دیجیتال",
-    desc: "پس از تایید رزرو، یک QR Code یا کد ورود امنیتی موقت برای راننده صادر می‌شود تا ورود و خروج او کاملاً دیجیتال و ثبت‌شده باشد.",
+    desc: "پس از تایید رزرو، کد ورود امنیتی موقت برای راننده صادر می‌شود تا ورود و خروج او کاملاً دیجیتال و ثبت‌شده باشد.",
     icon: ShieldCheck,
   },
   {
@@ -190,6 +195,7 @@ const teamMembers = [
 ];
 
 export default function AboutUs() {
+  const Navigate = useNavigate();
   return (
     <div
       dir="rtl"
@@ -251,18 +257,19 @@ export default function AboutUs() {
               </h2>
 
               <p className="text-lg text-muted-foreground leading-relaxed text-justify">
-                پروژه ونک حاصل تلاش یک تیم هم‌دانشگاهی ۸ نفره از دانشجویان
-                پرانگیزه دانشگاه علم و صنعت ایران است. ما از بهمن‌ماه سال ۱۴۰۴
-                با هدف طراحی یک سیستم نرم‌افزاری مدرن و هوشمند گردهم آمدیم و با
-                توسعه همزمان فرانت‌اند و بک‌اند، گامی استوار جهت حل یکی از
-                بزرگ‌ترین چالش‌های روزمره کلان‌شهرها برداشتیم.
+                پروژه ونک حاصل تلاش یک تیم دانشجویی ۸ نفره از دانشجویان پرانگیزه
+                دانشگاه علم و صنعت ایران است. ما از بهمن‌ماه سال ۱۴۰۴ با هدف
+                طراحی یک سیستم نرم‌افزاری مدرن و هوشمند گردهم آمدیم و با توسعه
+                این پلتفرم، گامی استوار جهت حل یکی از بزرگ‌ترین چالش‌های روزمره
+                کلان‌شهرها برداشتیم.
               </p>
 
               <p className="text-base text-muted-foreground/80 leading-relaxed text-justify">
                 ایده ونک از یک واقعیت ساده الهام گرفته شد: وجود هزاران فضای پارک
                 اختصاصی بلااستفاده در ساعات مختلف شبانه‌روز در حالی که رانندگان
-                زیادی در ترافیک‌های طاقت‌فرسا به دنبال جای پارک هستند. محله تجاری
-                و اداری شلوغ ونک، نقطه آغاز این ایده و نام پلتفرم هوشمند ماست.
+                زیادی در ترافیک‌های طاقت‌فرسا به دنبال جای پارک هستند. محله
+                تجاری و اداری شلوغ ونک، نقطه آغاز این ایده و نام پلتفرم هوشمند
+                بود. سپس به تمامی شهر گسترش داده شد.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-4">
@@ -317,10 +324,10 @@ export default function AboutUs() {
                 ۸ متخصص
               </div>
               <div className="text-sm font-semibold text-foreground/90">
-                هم‌بنیان‌گذاران و اعضای توسعه
+                بنیان‌گذاران و اعضای توسعه
               </div>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                دانشجویان مهندسی فرانت‌اند و بک‌اند با انگیزه بالا
+                دانشجویان مهندسی کامپیوتر با انگیزه بالا
               </p>
             </CardContent>
           </Card>
@@ -395,7 +402,8 @@ export default function AboutUs() {
               چرخه هوشمند به اشتراک‌گذاری پارکینگ
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              با ۴ گام ساده، فضای پارک خالی محله شما تبدیل به یک راهکار ترافیکی و درآمدزا خواهد شد.
+              با ۴ گام ساده، فضای پارک خالی محله شما تبدیل به یک راهکار ترافیکی
+              و درآمدزا خواهد شد.
             </p>
           </div>
 
@@ -438,7 +446,8 @@ export default function AboutUs() {
               اهداف و چشم‌اندازهای ما
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              ما به فراتر از یک اپلیکیشن پارک ساده فکر می‌کنیم و در پی هوشمندسازی کامل خدمات شهری هستیم.
+              ما به فراتر از یک اپلیکیشن پارک ساده فکر می‌کنیم و در پی
+              هوشمندسازی کامل خدمات شهری هستیم.
             </p>
           </div>
 
@@ -469,18 +478,31 @@ export default function AboutUs() {
               </TabsList>
             </div>
 
-            <div className="bg-card border border-border rounded-2xl p-6 md:p-10 shadow-xl transition-all duration-300 relative overflow-hidden text-right" dir="rtl">
+            <div
+              className="bg-card border border-border rounded-2xl p-6 md:p-10 shadow-xl transition-all duration-300 relative overflow-hidden text-right"
+              dir="rtl"
+            >
               <TabsContent
                 value="mission"
                 className="space-y-4 outline-none animate-in fade-in-50 duration-500 mt-0 text-right w-full"
                 dir="rtl"
               >
-                <h4 className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full" dir="rtl">
+                <h4
+                  className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full"
+                  dir="rtl"
+                >
                   <Target className="text-primary h-5 w-5 shrink-0" />
                   <span>روان‌سازی ترافیک و بهینه‌سازی فضاهای خاموش شهری</span>
                 </h4>
-                <p className="text-muted-foreground leading-relaxed text-right text-justify w-full" dir="rtl">
-                  ماموریت ما در پلتفرم ونک، برقراری ارتباط هوشمند و بی‌واسطه میان دارندگان فضاهای پارک بدون استفاده و رانندگان جویای پارک است. ما متعهد به طراحی بستری کاملاً پایدار، با کاربری ساده و ایمن هستیم تا با کاهش زمان جستجوی جای پارک، گامی عملی در راستای تقلیل مصرف سوخت و آلودگی هوای کلان‌شهر تهران برداریم.
+                <p
+                  className="text-muted-foreground leading-relaxed text-right text-justify w-full"
+                  dir="rtl"
+                >
+                  ماموریت ما در پلتفرم ونک، برقراری ارتباط هوشمند و بی‌واسطه
+                  میان دارندگان فضاهای پارک بدون استفاده و رانندگان جویای پارک
+                  است. ما متعهد به طراحی بستری کاملاً پایدار، با کاربری ساده و
+                  ایمن هستیم تا با کاهش زمان جستجوی جای پارک، گامی عملی در
+                  راستای تقلیل مصرف سوخت و آلودگی هوای کلان‌شهر تهران برداریم.
                 </p>
               </TabsContent>
 
@@ -489,12 +511,24 @@ export default function AboutUs() {
                 className="space-y-4 outline-none animate-in fade-in-50 duration-500 mt-0 text-right w-full"
                 dir="rtl"
               >
-                <h4 className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full" dir="rtl">
+                <h4
+                  className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full"
+                  dir="rtl"
+                >
                   <Eye className="text-primary h-5 w-5 shrink-0" />
-                  <span>هوشمندترین شبکه یکپارچه اشتراک‌گذاری پارک در ایران</span>
+                  <span>
+                    هوشمندترین شبکه یکپارچه اشتراک‌گذاری پارک در ایران
+                  </span>
                 </h4>
-                <p className="text-muted-foreground leading-relaxed text-right text-justify w-full" dir="rtl">
-                  ما به سوی فردایی پیش می‌رویم که در آن هیچ بن‌بست ترافیکی به وجود نیاید و هیچ راننده‌ای دغدغه فکری جای پارک پیش از حرکت را نداشته باشد. رویای ما یک شهر هوشمند واقعی است؛ جایی که از تک‌تک ظرفیت‌های شهری حداکثر بهره‌وری حاصل شده و سیستم‌های نوین نقشه و پرداخت هوشمند با زندگی شهروندان عجین شده باشند.
+                <p
+                  className="text-muted-foreground leading-relaxed text-right text-justify w-full"
+                  dir="rtl"
+                >
+                  ما به سوی فردایی پیش می‌رویم که در آن هیچ بن‌بست ترافیکی به
+                  وجود نیاید و هیچ راننده‌ای دغدغه فکری جای پارک پیش از حرکت را
+                  نداشته باشد. رویای ما یک شهر هوشمند واقعی است؛ جایی که از
+                  تک‌تک ظرفیت‌های شهری حداکثر بهره‌وری حاصل شده و سیستم‌های نوین
+                  نقشه و پرداخت هوشمند با زندگی شهروندان عجین شده باشند.
                 </p>
               </TabsContent>
 
@@ -503,12 +537,22 @@ export default function AboutUs() {
                 className="space-y-4 outline-none animate-in fade-in-50 duration-500 mt-0 text-right w-full"
                 dir="rtl"
               >
-                <h4 className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full" dir="rtl">
+                <h4
+                  className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full"
+                  dir="rtl"
+                >
                   <Compass className="text-primary h-5 w-5 shrink-0" />
                   <span>شفافیت مالی، امنیت کامل و مسئولیت اجتماعی پایدار</span>
                 </h4>
-                <p className="text-muted-foreground leading-relaxed text-right text-justify w-full" dir="rtl">
-                  به عنوان تیمی از متخصصان دانشگاه علم و صنعت، ارزش‌های بنیادین خود را بر پایه شفافیت کامل در تراکنش‌های مالی، حفظ تمام‌عیار حریم خصوصی کاربران، تعهد به حفظ محیط زیست شهری و پشتیبانی پاسخگو بنا نهاده‌ایم. ما باور داریم پیوند دانش دانشگاهی با نیازهای واقعی جامعه، زیباترین دستاورد علمی ما خواهد بود.
+                <p
+                  className="text-muted-foreground leading-relaxed text-right text-justify w-full"
+                  dir="rtl"
+                >
+                  به عنوان تیمی از متخصصان دانشگاه علم و صنعت، ارزش‌های بنیادین
+                  خود را بر پایه شفافیت کامل در تراکنش‌های مالی، حفظ تمام‌عیار
+                  حریم خصوصی کاربران، تعهد به حفظ محیط زیست شهری و پشتیبانی
+                  پاسخگو بنا نهاده‌ایم. ما باور داریم پیوند دانش دانشگاهی با
+                  نیازهای واقعی جامعه، زیباترین دستاورد علمی ما خواهد بود.
                 </p>
               </TabsContent>
             </div>
@@ -527,7 +571,8 @@ export default function AboutUs() {
               هسته تخصصی تیم توسعه ونک
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              ترکیبی هماهنگ از مهندسان فرانت‌اند، بک‌اند، اسکرام مستر و مدیر محصول دانشگاه علم و صنعت ایران.
+              ترکیبی هماهنگ از مهندسان فرانت‌اند، بک‌اند، اسکرام مستر و مدیر
+              محصول دانشگاه علم و صنعت ایران.
             </p>
           </div>
         </ScrollReveal>
@@ -614,25 +659,23 @@ export default function AboutUs() {
                   آیا ایده یا پیشنهادی برای همکاری با ونک دارید؟
                 </h3>
                 <p className="text-sm opacity-90 max-w-xl text-right leading-relaxed font-medium">
-                  ما با آغوشی باز مشتاق دریافت نظرات سازنده رانندگان، مالکان پارکینگ، اساتید محترم و صاحب‌نظران حوزه فناوری‌های شهری هوشمند هستیم. با ما در تماس باشید!
+                  ما با آغوشی باز مشتاق دریافت نظرات سازنده رانندگان، مالکان
+                  پارکینگ، اساتید محترم و صاحب‌نظران حوزه فناوری‌های شهری هوشمند
+                  هستیم. با ما در تماس باشید!
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-4 shrink-0">
                 <Button
+                  onClick={() => {
+                    Navigate("/contactus");
+                  }}
                   variant="secondary"
                   className="bg-background text-primary hover:bg-background/95 border-none shadow-md h-12 px-6 rounded-xl font-bold flex items-center gap-2 group-hover:translate-x-[-4px] transition-all"
                 >
                   <MessageSquare className="h-5 w-5" />
-                  فرم ارتباط با تیم
+                  صفحه ی ارتباط با تیم
                   <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-white/30 text-primary-foreground hover:bg-white/10 h-12 px-6 rounded-xl font-bold flex items-center gap-2 transition-all"
-                >
-                  <Mail className="h-5 w-5" />
-                  ارسال ایمیل مستقیم
                 </Button>
               </div>
             </div>
