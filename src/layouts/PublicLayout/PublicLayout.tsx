@@ -15,7 +15,7 @@ const PublicLayout = () => {
   const routesWithoutNavbar = ["/login"];
   const shouldShowNavbar = !routesWithoutNavbar.includes(location.pathname);
 
-  const dashboardRoutes = ["/blank"];
+  const dashboardRoutes = ["/blank", "/vehi"];
   const isDashboardPage = dashboardRoutes.some((route) =>
     location.pathname.startsWith(route),
   );
