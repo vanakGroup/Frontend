@@ -6,7 +6,8 @@ import Temp from "@/pages/Temp";
 import Login from "@/pages/Login";
 import ComponentTest from "@/pages/ComponentTest";
 import AboutUs from "@/pages/AboutUs";
-import ContactUs from "@/pages/ContactUs";
+import Vehi from "@/pages/vehi";
+import ContactUs from "@/pages/contactUs";
 
 export const router = createBrowserRouter([
   {
@@ -36,9 +37,10 @@ export const router = createBrowserRouter([
         path: "/test",
         element: <ComponentTest />,
       },
+      { path: "/aboutus", element: <AboutUs /> },
       {
-        path: "/aboutus",
-        element: <AboutUs />,
+        path: "/vehi",
+        element: <Vehi />,
       },
       {
         path: "/contactus",
