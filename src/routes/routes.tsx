@@ -5,6 +5,11 @@ import Blank from "@/pages/Blank";
 import Temp from "@/pages/Temp";
 import Login from "@/pages/Login";
 import ComponentTest from "@/pages/ComponentTest";
+import DashboardLayout from "@/pages/dashboard/DashboardLayout";
+import MyParking from "@/pages/dashboard/MyParking";
+import Management from "@/pages/dashboard/management/Management";
+import ParkingForm from "@/pages/dashboard/management/ParkingForm";
+import ParkingSlots from "@/pages/dashboard/management/ParkingSlots";
 import AboutUs from "@/pages/AboutUs";
 import ExploreParking from "@/pages/exploreParking";
 import Vehi from "@/pages/vehi";
@@ -56,6 +61,36 @@ export const router = createBrowserRouter([
       // 	element: <AboutUs />,
       // },
       // {
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    children: [
+      {
+        index: true, // ← add this
+        element: <MyParking />,
+      },
+      {
+        path: "my-parking",
+        element: <MyParking />,
+      },
+      {
+        path: "management",
+        element: <Management />,
+      },
+      {
+        path: "management/add",
+        element: <ParkingForm />,
+      },
+      {
+        path: "management/edit/:id",
+        element: <ParkingForm />,
+      },
+      {
+        path: "management/slots/:id",
+        element: <ParkingSlots />,
+      },
     ],
   },
   // {
