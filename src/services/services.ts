@@ -1,4 +1,5 @@
 // src/apiClient.ts
+import useUserStore from "@/store/userStore/userStore";
 import axios from "axios";
 import type {
   AxiosInstance,
@@ -25,8 +26,8 @@ const apiClient: AxiosInstance = axios.create({
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // const token = getTokenFromStore();
-    // if (token) config.headers.Authorization = `Bearer ${token}`;
+    const token = useUserStore.getState().accessToken;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
   (error) => Promise.reject(error),
@@ -40,7 +41,7 @@ apiClient.interceptors.response.use(
   },
 );
 
-// ✅ GET
+
 export const getData = async ({ endPoint, headers, params }: GetParams) => {
   try {
     const response: AxiosResponse = await apiClient.get(endPoint, {
@@ -54,7 +55,7 @@ export const getData = async ({ endPoint, headers, params }: GetParams) => {
   }
 };
 
-// ✅ POST
+
 export const postData = async ({ endPoint, data, headers }: PostParams) => {
   try {
     const response: AxiosResponse = await apiClient.post(endPoint, data, {
@@ -67,7 +68,7 @@ export const postData = async ({ endPoint, data, headers }: PostParams) => {
   }
 };
 
-// ✅ POST image/form-data
+
 export const postImageData = async ({ endPoint, data }: PostParams) => {
   try {
     const response: AxiosResponse = await apiClient.post(endPoint, data, {
@@ -80,7 +81,7 @@ export const postImageData = async ({ endPoint, data }: PostParams) => {
   }
 };
 
-// ✅ PATCH
+
 export const patchData = async ({ endPoint, data, headers }: PatchParams) => {
   try {
     const response: AxiosResponse = await apiClient.patch(endPoint, data, {
@@ -93,7 +94,7 @@ export const patchData = async ({ endPoint, data, headers }: PatchParams) => {
   }
 };
 
-// ✅ PUT
+
 export const putData = async ({ endPoint, data }: PutParams) => {
   try {
     const response: AxiosResponse = await apiClient.put(endPoint, data);
@@ -104,7 +105,7 @@ export const putData = async ({ endPoint, data }: PutParams) => {
   }
 };
 
-// ✅ DELETE
+
 export const deleteData = async ({ endPoint, data, headers }: DeleteParams) => {
   try {
     const response: AxiosResponse = await apiClient.delete(endPoint, {
