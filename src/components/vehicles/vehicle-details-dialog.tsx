@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { CustomDialog } from "@/components/Custom/CustomDialog";
 import { Button } from "@/components/ui/button";
 import type { Vehicle } from "@/types/vehicleTypes";
+import { getVehicleById } from "./vehicle-service";
 
 export function VehicleDetailsDialog({
   open,
