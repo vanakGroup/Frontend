@@ -6,6 +6,7 @@ import Temp from "@/pages/Temp";
 import Login from "@/pages/Login";
 import ComponentTest from "@/pages/ComponentTest";
 import AboutUs from "@/pages/AboutUs";
+import ExploreParking from "@/pages/exploreParking";
 import Vehi from "@/pages/vehi";
 import ContactUs from "@/pages/contactUs";
 
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
         element: <ComponentTest />,
       },
       { path: "/aboutus", element: <AboutUs /> },
+      {
+        path: "/parkings",
+        element: <ExploreParking />,
+      },
       {
         path: "/vehi",
         element: <Vehi />,
