@@ -1,24 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Vehicle } from "@/types/vehicleTypes";
 import { VehicleFormDialog } from "./vehicle-form-dialog";
 import { VehicleDetailsDialog } from "./vehicle-details-dialog";
 import { VehicleCard } from "./vehicle-card";
 import { Button } from "@/components/ui/button";
 import { Car, Plus } from "lucide-react";
-import { mockVehicles } from "./mockData";
 import ConfirmDialog, { ActionTypes } from "../Share/ConfirmDialog";
 import { Label } from "../ui/label";
 import { motion, AnimatePresence } from "framer-motion";
+import { deleteVehicle, getVehicles } from "./vehicle-service";
 
 export function VehiclesList() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [action, setAction] = useState<ActionTypes | undefined>(undefined);
+  const [vehicleIdToDelete, setVehicleIdToDelete] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const loadVehicles = async () => {
+      try {
+        const data = await getVehicles();
+        setVehicles(data);
+      } catch (error) {
+        console.error("Failed to load vehicles", error);
+      }
+    };
+
+    void loadVehicles();
+  }, []);
 
   const handleAdd = (data: { license_plate: string; car_model: string }) => {
     const newVehicle: Vehicle = {
@@ -28,12 +43,24 @@ export function VehiclesList() {
     setVehicles([newVehicle, ...vehicles]);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDeleteClick = (id: string) => {
+    setVehicleIdToDelete(id);
     setConfirmOpen(true);
-    if (action === ActionTypes.ok) {
-      console.log(`id ${id} deleted`);
-      setVehicles((vehicles) => vehicles.filter((veh) => veh.id != id));
+  };
+
+  const handleConfirmAction = async (action: ActionTypes) => {
+    if (action === ActionTypes.ok && vehicleIdToDelete) {
+      try {
+        await deleteVehicle(vehicleIdToDelete);
+        setVehicles((currentVehicles) =>
+          currentVehicles.filter((vehicle) => vehicle.id !== vehicleIdToDelete),
+        );
+      } catch (error) {
+        console.error("Failed to delete vehicle", error);
+      }
     }
+    setVehicleIdToDelete(null);
+    setConfirmOpen(false);
   };
 
   return (
@@ -88,7 +115,7 @@ export function VehiclesList() {
                     setSelectedVehicle(v);
                     setDetailsDialogOpen(true);
                   }}
-                  onDelete={handleDelete}
+                  onDelete={handleDeleteClick}
                 />
               </motion.div>
             ))}
@@ -111,13 +138,12 @@ export function VehiclesList() {
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => {
+          setVehicleIdToDelete(null);
           setConfirmOpen(false);
         }}
         title=""
         message="آیا از حذف این وسیله نقلیه مطمئن هستید؟"
-        setAction={(i) => {
-          setAction(i);
-        }}
+        setAction={handleConfirmAction}
         actions={[ActionTypes.ok, ActionTypes.cancle]}
       />
     </div>

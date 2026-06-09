@@ -15,7 +15,32 @@ export function VehicleDetailsDialog({
   onOpenChange: (open: boolean) => void;
   vehicle: Vehicle | null;
 }) {
+  const [vehicleDetails, setVehicleDetails] = useState<Vehicle | null>(vehicle);
+
+  useEffect(() => {
+    const loadVehicleDetails = async () => {
+      if (!open || !vehicle?.id) return;
+
+      try {
+        const data = await getVehicleById(vehicle.id);
+        setVehicleDetails(data);
+      } catch (error) {
+        console.error("Failed to load vehicle details", error);
+        setVehicleDetails(vehicle);
+      }
+    };
+
+    void loadVehicleDetails();
+  }, [open, vehicle]);
+
+  useEffect(() => {
+    if (!open) {
+      setVehicleDetails(vehicle);
+    }
+  }, [open, vehicle]);
+
   if (!vehicle) return null;
+  const displayVehicle = vehicleDetails ?? vehicle;
 
   return (
     <CustomDialog
@@ -25,10 +50,10 @@ export function VehicleDetailsDialog({
       showCloseButton={true}
     >
       <div className="space-y-4 ">
-        {vehicle.registration_card && (
+        {displayVehicle.registration_card && (
           <div className="flex justify-center">
             <img
-              src={vehicle.registration_card}
+              src={displayVehicle.registration_card}
               alt="کارت ماشین"
               className="max-h-48 rounded-lg border border-gray-200 object-contain"
             />
@@ -38,11 +63,13 @@ export function VehicleDetailsDialog({
         <div className="grid grid-cols-2 gap-3 text-sm bg-white p-4 rounded-lg border border-primary">
           <div className="font-medium text-gray-800 text-right">پلاک:</div>
           <div className="text-gray-800 text-right font-mono tracking-wider">
-            {vehicle.license_plate}
+            {displayVehicle.license_plate}
           </div>
 
           <div className="font-medium text-gray-800 text-right">مدل:</div>
-          <div className="text-gray-800 text-right">{vehicle.car_model}</div>
+          <div className="text-gray-800 text-right">
+            {displayVehicle.car_model}
+          </div>
         </div>
 
         <div className="flex justify-end pt-2">
