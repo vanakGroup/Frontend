@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import CustomInput from "@/components/Custom/CustomInput";
 import { Upload, Car, FileText } from "lucide-react";
+import { createVehicle } from "./vehicle-service";
 
 const ENGLISH_TO_PERSIAN: Record<string, string> = {
   "0": "۰",
@@ -42,11 +43,11 @@ function formatPlateInput(input: string): string {
   let result = "";
   let si = 0;
 
-  while (result.length < 3 && si < stripped.length) {
+  while (result.length < 2 && si < stripped.length) {
     if (PERSIAN_DIGIT_RE.test(stripped[si])) result += stripped[si];
     si++;
   }
-  if (result.length < 3) return result;
+  if (result.length < 2) return result;
 
   while (si < stripped.length) {
     if (PERSIAN_LETTER_RE.test(stripped[si])) {
@@ -56,7 +57,7 @@ function formatPlateInput(input: string): string {
     }
     si++;
   }
-  if (result.length < 4) return result;
+  if (result.length < 3) return result;
 
   while (result.length < 6 && si < stripped.length) {
     if (PERSIAN_DIGIT_RE.test(stripped[si])) result += stripped[si];
@@ -86,11 +87,11 @@ const vehicleSchema = yup.object({
     .required("پلاک الزامی است")
     .test(
       "plate-format",
-      "فرمت پلاک نامعتبر است (۳ رقم + ۱ حرف + ۲ رقم | ۲ رقم)",
+      "فرمت پلاک نامعتبر است (۲ رقم + ۱ حرف + ۳ رقم | ۲ رقم)",
       (value) => {
         if (!value) return false;
         const stripped = value.replace("|", "");
-        return /^[۰-۹]{3}[ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی][۰-۹]{4}$/.test(
+        return /^[۰-۹]{2}[ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی][۰-۹]{5}$/.test(
           stripped,
         );
       },
@@ -143,6 +144,11 @@ export function VehicleFormDialog({
     onSubmit: async (values) => {
       try {
         const plateForBackend = values.license_plate.replace("|", "");
+        await createVehicle({
+          license_plate: plateForBackend,
+          car_model: values.car_model,
+          registration_card: values.registration_card!,
+        });
         await onSave(
           {
             license_plate: plateForBackend,
@@ -257,7 +263,7 @@ export function VehicleFormDialog({
                   : undefined
               }
               inputSize="lg"
-              placeholder="۱۲۳ب۴۵|۶۷"
+              placeholder="۱۲ب۳۴۵|۶۷"
               value={formik.values.license_plate}
               onChange={handlePlateChange}
               onBlur={formik.handleBlur}
@@ -270,7 +276,7 @@ export function VehicleFormDialog({
               <CustomInput.Error />
             </CustomInput>
             <p className="text-xs text-muted-foreground mt-1 text-right">
-              فرمت: ۳ رقم فارسی + ۱ حرف + ۲ رقم | ۲ رقم
+              فرمت: ۲ رقم فارسی + ۱ حرف + ۳ رقم | ۲ رقم
             </p>
           </div>
 

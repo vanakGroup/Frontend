@@ -1,4 +1,3 @@
-import React, { useState, type ReactNode } from "react";
 import { CustomDialog } from "../Custom/CustomDialog";
 import { Button } from "@base-ui/react/button";
 
@@ -13,7 +12,7 @@ interface confirmDialogProps {
   message?: string;
   title?: string;
   open: boolean;
-  setAction: (arg0: ActionTypes) => void;
+  setAction: (action: ActionTypes) => void;
 }
 
 function ConfirmDialog({
