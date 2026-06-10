@@ -27,7 +27,7 @@ export default function PhoneStep({
     validateOnBlur: false,
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
-        // await sendOTPService({ phone: values.phone.trim() });
+        await sendOTPService({ phone: values.phone.trim() });
         toast.success("کد با موفقیت ارسال شد", {
           description: `کد تایید به شماره ${values.phone.trim()} پیامک شد.`,
         });
