@@ -55,7 +55,7 @@ export default function OTPStep({
       console.log("OTP:", values.otp);
 
       try {
-        // await verifyOTPService({ phone: phoneNumber, otp: values.otp.trim() });
+        await verifyOTPService({ phone: phoneNumber, otp: values.otp.trim() });
         const loginRes = await loginService({ phone: phoneNumber });
         setAuthData({
           phone: loginRes.data.phone,

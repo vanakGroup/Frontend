@@ -216,7 +216,7 @@ export default function ParkingSearchPage() {
                           {parking.pricePerHour}
                         </span>
                         <span className="text-xs text-muted-foreground font-medium mr-1">
-                          تومان/ساعت
+                          هزار تومان/ساعت
                         </span>
                       </div>
                       <Button size="default" className="font-bold shadow-sm">
