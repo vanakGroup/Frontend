@@ -10,10 +10,12 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const FALLBACK_IMAGE = "/no_image.svg";
 
 export default function ParkingSearchPage() {
+  const navigate = useNavigate();
   const {
     parkings,
     setParkings,
@@ -219,7 +221,11 @@ export default function ParkingSearchPage() {
                           هزار تومان/ساعت
                         </span>
                       </div>
-                      <Button size="default" className="font-bold shadow-sm">
+                      <Button
+                        size="default"
+                        className="font-bold shadow-sm"
+                        onClick={() => navigate(`/parking/${parking.id}`)}
+                      >
                         انتخاب پارکینگ
                       </Button>
                     </CardFooter>

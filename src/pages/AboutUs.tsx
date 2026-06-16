@@ -182,7 +182,7 @@ const teamMembers = [
   },
   {
     name: "امین فیروزی",
-    role: "مدیر محصول",
+    role: "مالک محصول",
     stack: "Product Owner",
     icon: Compass,
   },

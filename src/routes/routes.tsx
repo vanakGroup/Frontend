@@ -15,6 +15,8 @@ import ExploreParking from "@/pages/exploreParking";
 import Vehi from "@/pages/vehi";
 import ContactUs from "@/pages/contactUs";
 import UserProfile from "@/pages/dashboard/UserProfile";
+import ParkingProfile from "@/pages/ParkingProfile";
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -56,6 +58,11 @@ export const router = createBrowserRouter([
         path: "/contactus",
         element: <ContactUs />,
       },
+      {
+        path: "/parkings/:id",
+        element: <ParkingProfile />,
+      },
+
       // {
       // 	path: "/AboutUs",
       // 	element: <AboutUs />,
@@ -67,13 +74,13 @@ export const router = createBrowserRouter([
     path: "/dashboard",
     element: <DashboardLayout />,
     children: [
-      {
-        index: true, // ← add this
+      /*{
+        index: true, 
         element: <MyParking />,
-      },
+      },*/
       {
-        path: "my-parking",
-        element: <MyParking />,
+        index: true,
+        element: <Management />,
       },
       {
         path: "management",
