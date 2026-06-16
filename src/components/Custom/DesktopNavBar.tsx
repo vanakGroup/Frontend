@@ -18,7 +18,10 @@ export const DesktopNavBar = ({ showToggle, links }: Props) => {
     <header className="hidden md:flex fixed top-0 left-0 right-0 h-16 border-b border-border bg-background/80 backdrop-blur-md z-[60] items-center justify-between px-6">
       <div className="flex items-center gap-4">
         {phone ? (
-          <div className="flex items-center gap-3">
+          <div
+            onClick={() => Navigate("/userprofile")}
+            className="flex items-center gap-3 cursor-pointer"
+          >
             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0">
               <User size={16} />
             </div>
@@ -77,7 +80,7 @@ export const DesktopNavBar = ({ showToggle, links }: Props) => {
           )}
 
           <button onClick={() => Navigate("/")}>
-            <div className="flex items-center gap-3" dir="ltr">
+            <div className="flex items-center gap-3 cursor-pointer" dir="ltr">
               <div className="hidden lg:flex flex-col" dir="rtl">
                 <span className="font-bold text-xl text-primary tracking-tight mb-1 leading-none">
                   ونک

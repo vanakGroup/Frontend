@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   User,
   Phone,
@@ -16,44 +16,67 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-// --- Types ---
-interface UserProfileData {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  nationalId: string;
-  accountNumber: string;
+// --- Swagger Align Interfaces ---
+interface SwaggerUserData {
+  first_name: string;
+  last_name: string;
+  national_code: string;
+  phone: string; // Read-only
+  shaba_number: string;
 }
 
-// --- Simulating API Methods ---
-const mockApi = {
-  getUserProfile: (): Promise<UserProfileData> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          firstName: "",
-          lastName: "",
-          phoneNumber: "09123456789",
-          nationalId: "",
-          accountNumber: "",
-        });
-      }, 1000);
-    });
-  },
+interface SwaggerGetReponse {
+  data: SwaggerUserData;
+  message: string;
+  statusCode: number;
+}
 
-  updateUserProfile: (
-    data: UserProfileData,
-  ): Promise<{ success: boolean; message: string }> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          message: "اطلاعات پروفایل شما با موفقیت به‌روزرسانی شد.",
-        });
-      }, 1200);
-    });
-  },
-};
+interface SwaggerPutPayload {
+  firstname: string;
+  lastname: string;
+  national_code: string;
+  shaba_number: string;
+}
+
+interface SwaggerPutResponse {
+  data: any;
+  message: string | Record<string, string>;
+  statusCode: number;
+}
+
+const API_BASE_URL = "http://localhost:8080/v1";
+
+// --- Helper to extract persisted token from state management (e.g. Zustand) ---
+function getAuthData() {
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key) {
+      try {
+        const item = localStorage.getItem(key);
+        if (item && item.includes("accessToken")) {
+          const parsed = JSON.parse(item);
+          if (parsed && parsed.state && parsed.state.accessToken) {
+            return {
+              token: parsed.state.accessToken,
+              phone: parsed.state.phone || "",
+            };
+          }
+        }
+      } catch (e) {
+        // Ignore JSON parsing errors for non-JSON items
+      }
+    }
+  }
+
+  // Fallback to direct localStorage items
+  const directToken =
+    localStorage.getItem("accessToken") || localStorage.getItem("token");
+  const directPhone = localStorage.getItem("phone") || "";
+  if (directToken) {
+    return { token: directToken, phone: directPhone };
+  }
+  return null;
+}
 
 // --- Helper to convert Persian/Arabic digits to English ---
 function convertDigitsToEnglish(str: string): string {
@@ -92,12 +115,14 @@ function convertDigitsToEnglish(str: string): string {
 }
 
 export default function UserProfile() {
-  const [profile, setProfile] = useState<UserProfileData>({
-    firstName: "",
-    lastName: "",
-    phoneNumber: "",
-    nationalId: "",
-    accountNumber: "",
+  const navigate = useNavigate();
+
+  const [profile, setProfile] = useState<SwaggerUserData>({
+    first_name: "",
+    last_name: "",
+    phone: "",
+    national_code: "",
+    shaba_number: "",
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -105,32 +130,58 @@ export default function UserProfile() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // --- Load Profile Data ---
+  // --- Fetch Profile on Mount ---
   useEffect(() => {
+    const authData = getAuthData();
+
+    // Redirect to login if token is missing
+    if (!authData || !authData.token) {
+      navigate("/login");
+      return;
+    }
+
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        const data = await mockApi.getUserProfile();
-        setProfile(data);
+        const response = await fetch(`${API_BASE_URL}/profile`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authData.token}`,
+          },
+        });
+
+        const result: SwaggerGetReponse = await response.json();
+
+        if (response.status === 200 && result.statusCode === 200) {
+          // If profile returned phone is empty, fallback to token-level phone
+          const userData = { ...result.data };
+          if (!userData.phone) {
+            userData.phone = authData.phone;
+          }
+          setProfile(userData);
+        } else if (response.status === 401 || result.statusCode === 401) {
+          navigate("/login");
+        } else {
+          setErrorMessage(result.message || "خطا در بارگذاری مشخصات از سرور.");
+        }
       } catch (error) {
-        setErrorMessage(
-          "خطا در دریافت اطلاعات از سرور. لطفاً دوباره تلاش کنید.",
-        );
+        setErrorMessage("ارتباط با سرور برقرار نشد. لطفاً مجدداً تلاش کنید.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [navigate]);
 
-  // --- Input Change Handler ---
+  // --- Change Handler ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Automatically convert digits for numeric fields
+    // Apply English digits conversion for code and shaba fields
     const processedValue =
-      name === "nationalId" || name === "accountNumber"
+      name === "national_code" || name === "shaba_number"
         ? convertDigitsToEnglish(value)
         : value;
 
@@ -140,57 +191,94 @@ export default function UserProfile() {
     }));
   };
 
-  // --- Submit & Validate Profile ---
+  // --- Submit Update Profile ---
+  // --- Submit Update Profile ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (!profile.firstName.trim() || !profile.lastName.trim()) {
-      setErrorMessage("لطفاً نام و نام خانوادگی خود را به طور کامل وارد کنید.");
+    const authData = getAuthData();
+    if (!authData || !authData.token) {
+      navigate("/login");
       return;
     }
 
-    const cleanNationalId = profile.nationalId.replace(/\s/g, "");
-    if (
-      cleanNationalId &&
-      (cleanNationalId.length !== 10 || isNaN(Number(cleanNationalId)))
-    ) {
-      setErrorMessage("کد ملی وارد شده باید دقیقاً ۱۰ رقم و بدون حروف باشد.");
+    if (!profile.first_name.trim() || !profile.last_name.trim()) {
+      setErrorMessage("وارد کردن نام و نام خانوادگی الزامی است.");
       return;
     }
 
-    const cleanAccount = profile.accountNumber.replace(/\s/g, "");
+    const cleanNationalCode = profile.national_code.replace(/\s/g, "");
     if (
-      cleanAccount &&
-      isNaN(Number(cleanAccount)) &&
-      !cleanAccount.toUpperCase().startsWith("IR")
+      cleanNationalCode &&
+      (cleanNationalCode.length !== 10 || isNaN(Number(cleanNationalCode)))
     ) {
-      setErrorMessage("شماره حساب یا شبای وارد شده معتبر نیست.");
+      setErrorMessage(
+        "کد ملی وارد شده معتبر نیست (باید دقیقاً ۱۰ رقم عددی باشد).",
+      );
       return;
     }
+
+    const cleanShaba = profile.shaba_number.replace(/\s/g, "");
 
     try {
       setIsSaving(true);
 
-      const payload: UserProfileData = {
-        firstName: profile.firstName.trim(),
-        lastName: profile.lastName.trim(),
-        phoneNumber: profile.phoneNumber,
-        nationalId: cleanNationalId,
-        accountNumber: cleanAccount,
+      const payload: SwaggerPutPayload = {
+        firstname: profile.first_name.trim(),
+        lastname: profile.last_name.trim(),
+        national_code: cleanNationalCode,
+        shaba_number: cleanShaba,
       };
 
-      const response = await mockApi.updateUserProfile(payload);
+      const response = await fetch(`${API_BASE_URL}/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authData.token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-      if (response.success) {
-        setSuccessMessage(response.message);
+      const result: SwaggerPutResponse = await response.json();
+
+      if (response.status === 200 && result.statusCode === 200) {
+        setSuccessMessage("اطلاعات پروفایل شما با موفقیت به‌روزرسانی شد.");
+        setProfile((prev) => ({
+          ...prev,
+          first_name: payload.firstname,
+          last_name: payload.lastname,
+          national_code: payload.national_code,
+          shaba_number: payload.shaba_number,
+        }));
         setTimeout(() => setSuccessMessage(null), 4000);
       } else {
-        setErrorMessage(response.message);
+        // --- Safe Error Parsing to Prevent React Crash ---
+        if (result.message && typeof result.message === "object") {
+          // اگر خطا یک شیء تودرتو بود، عمیق‌ترین مقادیر متنی را استخراج می‌کند
+          const extractErrors = (obj: any): string[] => {
+            let messages: string[] = [];
+            for (const key in obj) {
+              if (typeof obj[key] === "object" && obj[key] !== null) {
+                messages = messages.concat(extractErrors(obj[key]));
+              } else {
+                messages.push(String(obj[key]));
+              }
+            }
+            return messages;
+          };
+
+          const errList = extractErrors(result.message);
+          setErrorMessage(errList.join(" | "));
+        } else if (result.message) {
+          setErrorMessage(String(result.message));
+        } else {
+          setErrorMessage("خطا در به‌روزرسانی اطلاعات حساب کاربری.");
+        }
       }
     } catch (error) {
-      setErrorMessage("ارتباط با سرور برقرار نشد. لطفاً مجدداً تلاش کنید.");
+      setErrorMessage("خطا در برقراری ارتباط با وب‌سرویس.");
     } finally {
       setIsSaving(false);
     }
@@ -201,7 +289,7 @@ export default function UserProfile() {
       dir="rtl"
       className="w-full min-h-screen text-foreground bg-background font-sans relative py-12 px-4 md:px-8 rtl"
     >
-      {/* Dynamic Background Glows */}
+      {/* Background Ambience */}
       <div className="absolute top-10 left-10 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px] -z-10 animate-pulse"></div>
       <div
         className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-secondary/10 rounded-full blur-[120px] -z-10 animate-pulse"
@@ -209,7 +297,7 @@ export default function UserProfile() {
       ></div>
 
       <div className="max-w-2xl mx-auto space-y-8 relative z-10">
-        {/* Header Block */}
+        {/* Profile Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/60">
           <div className="space-y-2 text-right">
             <h1 className="text-2xl md:text-3xl font-black tracking-tight flex items-center gap-2 justify-start">
@@ -224,15 +312,14 @@ export default function UserProfile() {
             </p>
           </div>
           <Link to="/" className="shrink-0">
-            {/* Redesigned blue back button with icon on the right side */}
             <Button className="bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground border border-primary/20 hover:border-transparent gap-2 text-xs h-10 px-5 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer">
-              <ArrowRight className="w-4 h-4" />
               <span>بازگشت به خانه</span>
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
         </div>
 
-        {/* Loading Skeleton */}
+        {/* Loading / Content wrapper */}
         {isLoading ? (
           <Card className="p-12 flex flex-col items-center justify-center space-y-4 border-primary/20 bg-card/40 backdrop-blur-md rounded-3xl shadow-xl shadow-primary/5 animate-pulse">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
@@ -242,30 +329,29 @@ export default function UserProfile() {
           </Card>
         ) : (
           <form onSubmit={handleSubmit}>
-            {/* Main Form Card with soft hover glow effect */}
             <Card className="p-6 md:p-8 bg-card/60 backdrop-blur-lg border border-border/80 hover:border-primary/30 rounded-[32px] space-y-8 shadow-2xl transition-all duration-500 hover:shadow-primary/5">
-              {/* Error messages */}
+              {/* Errors container */}
               {errorMessage && (
-                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3 text-destructive text-sm text-right animate-shake">
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-start gap-3 text-destructive text-sm text-right animate-shake animate-in fade-in duration-300">
                   <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 animate-bounce" />
                   <span className="leading-relaxed">{errorMessage}</span>
                 </div>
               )}
 
-              {/* Success messages */}
+              {/* Success container */}
               {successMessage && (
-                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-3 text-emerald-600 dark:text-emerald-400 text-sm text-right animate-fadeIn">
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-3 text-emerald-600 dark:text-emerald-400 text-sm text-right animate-in fade-in duration-300">
                   <CheckCircle className="w-5 h-5 shrink-0 mt-0.5 animate-bounce" />
                   <span className="leading-relaxed">{successMessage}</span>
                 </div>
               )}
 
-              {/* Form inputs grid */}
+              {/* Inputs Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* First Name */}
                 <div className="space-y-2 text-right group">
                   <label
-                    htmlFor="firstName"
+                    htmlFor="first_name"
                     className="text-xs md:text-sm font-bold text-foreground/80 flex items-center gap-1.5 transition-colors group-focus-within:text-primary"
                   >
                     نام <span className="text-destructive">*</span>
@@ -274,9 +360,9 @@ export default function UserProfile() {
                     <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
                     <input
                       type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={profile.firstName}
+                      id="first_name"
+                      name="first_name"
+                      value={profile.first_name || ""}
                       onChange={handleInputChange}
                       placeholder="مثال: علی"
                       className="w-full pr-12 pl-4 py-3.5 bg-background/50 border border-border/80 focus:border-primary focus:bg-background rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-right shadow-sm focus:shadow-md"
@@ -288,7 +374,7 @@ export default function UserProfile() {
                 {/* Last Name */}
                 <div className="space-y-2 text-right group">
                   <label
-                    htmlFor="lastName"
+                    htmlFor="last_name"
                     className="text-xs md:text-sm font-bold text-foreground/80 flex items-center gap-1.5 transition-colors group-focus-within:text-primary"
                   >
                     نام خانوادگی <span className="text-destructive">*</span>
@@ -297,9 +383,9 @@ export default function UserProfile() {
                     <User className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
                     <input
                       type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={profile.lastName}
+                      id="last_name"
+                      name="last_name"
+                      value={profile.last_name || ""}
                       onChange={handleInputChange}
                       placeholder="مثال: رضایی"
                       className="w-full pr-12 pl-4 py-3.5 bg-background/50 border border-border/80 focus:border-primary focus:bg-background rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-right shadow-sm focus:shadow-md"
@@ -308,10 +394,10 @@ export default function UserProfile() {
                   </div>
                 </div>
 
-                {/* Phone Number (Read-only) */}
+                {/* Read-Only Phone Number */}
                 <div className="space-y-2 text-right opacity-80">
                   <label
-                    htmlFor="phoneNumber"
+                    htmlFor="phone"
                     className="text-xs md:text-sm font-bold text-foreground/80 flex items-center gap-1.5"
                   >
                     شماره تلفن همراه{" "}
@@ -323,19 +409,19 @@ export default function UserProfile() {
                     <Phone className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40" />
                     <input
                       type="text"
-                      id="phoneNumber"
-                      name="phoneNumber"
-                      value={profile.phoneNumber}
+                      id="phone"
+                      name="phone"
+                      value={profile.phone || ""}
                       disabled
                       className="w-full pr-12 pl-4 py-3.5 bg-muted/40 border border-border/40 rounded-2xl text-sm text-muted-foreground/80 font-mono ltr text-left cursor-not-allowed select-none"
                     />
                   </div>
                 </div>
 
-                {/* National ID */}
+                {/* National Code */}
                 <div className="space-y-2 text-right group">
                   <label
-                    htmlFor="nationalId"
+                    htmlFor="national_code"
                     className="text-xs md:text-sm font-bold text-foreground/80 transition-colors group-focus-within:text-primary"
                   >
                     کد ملی{" "}
@@ -347,9 +433,9 @@ export default function UserProfile() {
                     <ShieldCheck className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
                     <input
                       type="text"
-                      id="nationalId"
-                      name="nationalId"
-                      value={profile.nationalId}
+                      id="national_code"
+                      name="national_code"
+                      value={profile.national_code || ""}
                       onChange={handleInputChange}
                       placeholder="مثال: ۰۰۱۲۳۴۵۶۷۸"
                       maxLength={10}
@@ -358,10 +444,10 @@ export default function UserProfile() {
                   </div>
                 </div>
 
-                {/* Account/Sheba Number */}
+                {/* Shaba Number */}
                 <div className="space-y-2 text-right sm:col-span-2 group">
                   <label
-                    htmlFor="accountNumber"
+                    htmlFor="shaba_number"
                     className="text-xs md:text-sm font-bold text-foreground/80 transition-colors group-focus-within:text-primary"
                   >
                     شماره حساب یا شماره شبا (جهت تسویه مالکان){" "}
@@ -373,9 +459,9 @@ export default function UserProfile() {
                     <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
                     <input
                       type="text"
-                      id="accountNumber"
-                      name="accountNumber"
-                      value={profile.accountNumber}
+                      id="shaba_number"
+                      name="shaba_number"
+                      value={profile.shaba_number || ""}
                       onChange={handleInputChange}
                       placeholder="مثال: شماره حساب یا شماره شبا با IR"
                       className="w-full pr-12 pl-4 py-3.5 bg-background/50 border border-border/80 focus:border-primary focus:bg-background rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-right font-mono shadow-sm focus:shadow-md"
@@ -384,7 +470,7 @@ export default function UserProfile() {
                 </div>
               </div>
 
-              {/* Form Action Button */}
+              {/* Submit Buttons */}
               <div className="pt-6 border-t border-border/60 flex justify-end">
                 <Button
                   type="submit"
