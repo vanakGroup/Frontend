@@ -13,8 +13,7 @@ const dashboardLinks = [
     to: "/dashboard/my-parking",
     icon: <ParkingSquare size={20} />,
   },
-  { label: "پروفایل", to: "/dashboard/profile", icon: <User size={20} /> },
-  { label: "تنظیمات", to: "/dashboard/settings", icon: <Settings size={20} /> },
+  { label: "ویرایش حساب کاربری", to: "/dashboard/profile", icon: <User size={20} /> },
 ];
 
 const navLinks = [
