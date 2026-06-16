@@ -15,6 +15,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getData, putData } from "@/services/services";
+import useUserStore from "@/store/userStore/userStore";
 
 // --- Swagger Align Interfaces ---
 interface SwaggerUserData {
@@ -45,38 +47,6 @@ interface SwaggerPutResponse {
 }
 
 const API_BASE_URL = "http://localhost:8080/v1";
-
-// --- Helper to extract persisted token from state management (e.g. Zustand) ---
-function getAuthData() {
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key) {
-      try {
-        const item = localStorage.getItem(key);
-        if (item && item.includes("accessToken")) {
-          const parsed = JSON.parse(item);
-          if (parsed && parsed.state && parsed.state.accessToken) {
-            return {
-              token: parsed.state.accessToken,
-              phone: parsed.state.phone || "",
-            };
-          }
-        }
-      } catch (e) {
-        // Ignore JSON parsing errors for non-JSON items
-      }
-    }
-  }
-
-  // Fallback to direct localStorage items
-  const directToken =
-    localStorage.getItem("accessToken") || localStorage.getItem("token");
-  const directPhone = localStorage.getItem("phone") || "";
-  if (directToken) {
-    return { token: directToken, phone: directPhone };
-  }
-  return null;
-}
 
 // --- Helper to convert Persian/Arabic digits to English ---
 function convertDigitsToEnglish(str: string): string {
@@ -116,6 +86,7 @@ function convertDigitsToEnglish(str: string): string {
 
 export default function UserProfile() {
   const navigate = useNavigate();
+  const { phone: storePhone, accessToken, clearAuth, setUsername } = useUserStore();
 
   const [profile, setProfile] = useState<SwaggerUserData>({
     first_name: "",
@@ -132,10 +103,8 @@ export default function UserProfile() {
 
   // --- Fetch Profile on Mount ---
   useEffect(() => {
-    const authData = getAuthData();
-
     // Redirect to login if token is missing
-    if (!authData || !authData.token) {
+    if (!accessToken) {
       navigate("/login");
       return;
     }
@@ -143,37 +112,38 @@ export default function UserProfile() {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/profile`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authData.token}`,
-          },
-        });
+        const result: SwaggerGetReponse = await getData({ endPoint: "/v1/profile" });
 
-        const result: SwaggerGetReponse = await response.json();
-
-        if (response.status === 200 && result.statusCode === 200) {
+        if (result.statusCode === 200) {
           // If profile returned phone is empty, fallback to token-level phone
           const userData = { ...result.data };
           if (!userData.phone) {
-            userData.phone = authData.phone;
+            userData.phone = storePhone || "";
           }
           setProfile(userData);
-        } else if (response.status === 401 || result.statusCode === 401) {
+          if (userData.first_name || userData.last_name) {
+            setUsername(`${userData.first_name || ""} ${userData.last_name || ""}`.trim());
+          }
+        } else if (result.statusCode === 401) {
+          clearAuth();
           navigate("/login");
         } else {
           setErrorMessage(result.message || "خطا در بارگذاری مشخصات از سرور.");
         }
-      } catch (error) {
-        setErrorMessage("ارتباط با سرور برقرار نشد. لطفاً مجدداً تلاش کنید.");
+      } catch (error: any) {
+        if (error.response?.status === 401) {
+          clearAuth();
+          navigate("/login");
+        } else {
+          setErrorMessage("ارتباط با سرور برقرار نشد. لطفاً مجدداً تلاش کنید.");
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, [navigate, accessToken, storePhone, clearAuth, setUsername]);
 
   // --- Change Handler ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,14 +162,12 @@ export default function UserProfile() {
   };
 
   // --- Submit Update Profile ---
-  // --- Submit Update Profile ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const authData = getAuthData();
-    if (!authData || !authData.token) {
+    if (!accessToken) {
       navigate("/login");
       return;
     }
@@ -232,18 +200,9 @@ export default function UserProfile() {
         shaba_number: cleanShaba,
       };
 
-      const response = await fetch(`${API_BASE_URL}/profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authData.token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const result: SwaggerPutResponse = await putData({ endPoint: "/v1/profile", data: payload });
 
-      const result: SwaggerPutResponse = await response.json();
-
-      if (response.status === 200 && result.statusCode === 200) {
+      if (result.statusCode === 200) {
         setSuccessMessage("اطلاعات پروفایل شما با موفقیت به‌روزرسانی شد.");
         setProfile((prev) => ({
           ...prev,
@@ -252,6 +211,7 @@ export default function UserProfile() {
           national_code: payload.national_code,
           shaba_number: payload.shaba_number,
         }));
+        setUsername(`${payload.firstname} ${payload.lastname}`.trim());
         setTimeout(() => setSuccessMessage(null), 4000);
       } else {
         // --- Safe Error Parsing to Prevent React Crash ---
@@ -277,8 +237,13 @@ export default function UserProfile() {
           setErrorMessage("خطا در به‌روزرسانی اطلاعات حساب کاربری.");
         }
       }
-    } catch (error) {
-      setErrorMessage("خطا در برقراری ارتباط با وب‌سرویس.");
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        clearAuth();
+        navigate("/login");
+      } else {
+        setErrorMessage("خطا در برقراری ارتباط با وب‌سرویس.");
+      }
     } finally {
       setIsSaving(false);
     }
