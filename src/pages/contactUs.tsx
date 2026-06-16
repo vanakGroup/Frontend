@@ -210,7 +210,7 @@ export default function ContactUs() {
                 ارسال پیام مستقیم
               </h3>
               <p className="text-xs text-muted-foreground">
-                پیغام شما مستقیماً به دست اعضای اسکرام پلتفرم خواهد رسید.
+                پیغام شما مستقیماً به دست اعضای توسعه این پلتفرم خواهد رسید.
               </p>
             </div>
           </div>

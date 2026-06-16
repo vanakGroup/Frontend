@@ -12,14 +12,14 @@ export const SideBar = ({ children }: SideBarProps) => {
     <>
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] md:hidden transition-opacity"
           onClick={collapseSidebar}
         />
       )}
 
       <aside
         className={`
-          fixed top-0 right-0 h-screen z-50 
+          fixed top-0 right-0 h-screen z-[70] 
           bg-background border-l border-border shadow-xl
           transition-transform duration-300 ease-in-out
           flex flex-col overflow-y-auto
