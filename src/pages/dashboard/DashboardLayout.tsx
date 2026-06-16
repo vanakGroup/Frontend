@@ -3,7 +3,7 @@ import { DesktopNavBar } from "@/components/Custom/DesktopNavBar";
 import { DesktopSideBar } from "@/components/Custom/DesktopSideBar";
 import { MobileNavBar } from "@/components/Custom/MobileNavBar";
 import { MobileSideBar } from "@/components/Custom/MobileSideBar";
-import { LayoutDashboard, ParkingSquare, Settings } from "lucide-react";
+import { LayoutDashboard, ParkingSquare, Settings, User } from "lucide-react";
 import { Label } from "radix-ui";
 
 const dashboardLinks = [
@@ -12,6 +12,7 @@ const dashboardLinks = [
     to: "/dashboard/my-parking",
     icon: <ParkingSquare size={20} />,
   },
+  { label: "پروفایل", to: "/dashboard/profile", icon: <User size={20} /> },
   { label: "تنظیمات", to: "/dashboard/settings", icon: <Settings size={20} /> },
 ];
 
