@@ -5,6 +5,7 @@ import { MobileNavBar } from "@/components/Custom/MobileNavBar";
 import { MobileSideBar } from "@/components/Custom/MobileSideBar";
 import { LayoutDashboard, ParkingSquare, Settings, User } from "lucide-react";
 import { Label } from "radix-ui";
+import { useSidebarStore } from "@/store/sidebarStore/sidebarStore";
 
 const dashboardLinks = [
   {
@@ -17,12 +18,14 @@ const dashboardLinks = [
 ];
 
 const navLinks = [
-  { label: "خانه", to: "/" },
-  { label: "داشبورد", to: "/dashboard" },
-  { label: "درباره ما", to: "/blank" },
+  { label: "صفحه اصلی", to: "/" },
+  { label: "درباره ما", to: "/aboutus" },
+  { label: "تماس با ما", to: "/contactus" },
 ];
 
 export default function DashboardLayout() {
+  const { isExpanded } = useSidebarStore();
+
   return (
     <div className="min-h-screen bg-muted">
       <ScrollRestoration />
@@ -41,7 +44,10 @@ export default function DashboardLayout() {
       <MobileNavBar />
 
       {/* Main content */}
-      <main className="md:mr-64 pt-16 pb-24 md:pb-8 min-h-screen" dir="rtl">
+      <main 
+        className={`${isExpanded ? "md:mr-64" : "md:mr-0"} pt-16 pb-24 md:pb-8 min-h-screen transition-all duration-300 ease-in-out`} 
+        dir="rtl"
+      >
         <div className="p-4 md:p-6">
           <Outlet />
         </div>

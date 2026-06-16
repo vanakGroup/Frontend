@@ -103,7 +103,7 @@ export const DesktopNavBar = ({ showToggle, links }: Props) => {
               </div>
               <div className="w-10 h-10 shrink-0 flex items-center justify-center">
                 <img
-                  src="@/../jl.png"
+                  src="/jl.png"
                   alt="logo"
                   className="w-full h-full object-contain"
                 />
