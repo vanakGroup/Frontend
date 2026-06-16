@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 import { DesktopNavBar } from "@/components/Custom/DesktopNavBar";
 import { DesktopSideBar } from "@/components/Custom/DesktopSideBar";
 import { MobileNavBar } from "@/components/Custom/MobileNavBar";
@@ -24,6 +24,7 @@ const navLinks = [
 export default function DashboardLayout() {
   return (
     <div className="min-h-screen bg-muted">
+      <ScrollRestoration />
       {/* Navbar */}
       <DesktopNavBar showToggle={true} links={navLinks} />
 
