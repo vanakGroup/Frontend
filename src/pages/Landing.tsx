@@ -167,7 +167,7 @@ export default function Landing() {
             <Link to="/aboutus">
               <Button
                 variant="outline"
-                className="border-border/80 text-foreground text-base font-bold h-14 px-8 rounded-2xl hover:bg-muted/40 backdrop-blur-sm transition-all"
+                className="border-border/80 text-foreground text-base font-bold h-14 px-8 rounded-2xl hover:bg-muted/40 backdrop-blur-sm transition-all cursor-pointer"
               >
                 داستان تیم ما
               </Button>
@@ -196,7 +196,7 @@ export default function Landing() {
             <path
               d="M 600,80 C 1150,280 1150,600 600,650 C 50,700 50,1050 600,1100 C 1150,1150 1150,1500 600,1550 C 50,1600 50,1950 600,2000 C 1150,2050 1150,2400 600,2450"
               fill="none"
-              className="stroke-card dark:stroke-slate-900/85"
+              className="stroke-slate-900/85"
               strokeWidth="110"
               strokeLinecap="round"
             />

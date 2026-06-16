@@ -62,6 +62,21 @@ export default function OTPStep({
           accessToken: loginRes.data.accessToken,
           refreshToken: loginRes.data.refreshToken,
         });
+
+        // Fetch user profile immediately to update username in navbar
+        try {
+          const { getData } = await import("@/services/services");
+          const profileRes = await getData({ endPoint: "/v1/profile" });
+          if (profileRes && profileRes.statusCode === 200) {
+            const userData = profileRes.data;
+            if (userData && (userData.first_name || userData.last_name)) {
+              useUserStore.getState().setUsername(`${userData.first_name || ""} ${userData.last_name || ""}`.trim());
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch profile during login", e);
+        }
+
         Navigate("/blank");
         console.log("Login successful");
       } catch (error) {

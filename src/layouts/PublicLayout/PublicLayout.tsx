@@ -1,5 +1,5 @@
 import { Toaster } from "../../components/ui/sonner";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, ScrollRestoration } from "react-router-dom";
 import { DesktopNavBar } from "../../components/Custom/DesktopNavBar";
 import { MobileNavBar } from "../../components/Custom/MobileNavBar";
 import { DesktopSideBar } from "../../components/Custom/DesktopSideBar";
@@ -34,6 +34,7 @@ const PublicLayout = () => {
 
   return (
     <>
+      <ScrollRestoration />
       <Toaster
         position="bottom-right"
         richColors={true}
