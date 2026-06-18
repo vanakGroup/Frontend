@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -9,17 +9,15 @@ import {
   Car,
   DollarSign,
   Shield,
-  Zap,
-  Bike,
-  Truck,
-  Accessibility,
   Home,
   ArrowRight,
   Clock,
   X,
   ChevronLeft,
   ChevronRight,
-  Flag,
+  Eye,
+  Hash,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,14 +32,14 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// --- Mock data (replace with API later) ---
+// --- Mock data ---
 const mockParking = {
   id: 1,
   name: "پارکینگ ونک",
   address: "تهران / میدان ونک / خیابان ولیعصر",
   phone: "021-88001234",
   province: "تهران",
-  postalCode: "1234567890",
+  postalCode: "۱۴۳۹۷۵۶۷۸۹",
   capacity: 50,
   pricePerHour: 15000,
   description:
@@ -62,17 +60,11 @@ const mockParking = {
   reviewCount: 128,
 };
 
-// Mock time slots — replace with API later
+// Mock time slots
 const mockTimeSlots = Array.from({ length: 24 }, (_, i) => ({
   hour: i,
-  available: Math.random() > 0.3, // random availability for demo
+  available: Math.random() > 0.3,
 }));
-
-const amenityConfig = [
-  { key: "cctv", label: "دوربین مداربسته" },
-  { key: "security", label: "نگهبان" },
-  { key: "covered", label: "سقف‌دار" },
-];
 
 interface TimeSlot {
   hour: number;
@@ -83,15 +75,16 @@ export default function ParkingProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // In real app: fetch parking by id
   const parking = mockParking;
 
   const [currentImage, setCurrentImage] = useState(0);
   const [showReserveDialog, setShowReserveDialog] = useState(false);
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
   const [timeSlots] = useState<TimeSlot[]>(mockTimeSlots);
-
-  const isLoggedIn = false; // replace with userStore later
+  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
+    null,
+  );
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const toggleHour = (hour: number) => {
     const slot = timeSlots.find((s) => s.hour === hour);
@@ -123,10 +116,6 @@ export default function ParkingProfile() {
   const totalPrice = selectedHours.length * parking.pricePerHour;
 
   const handleReserve = () => {
-    //if (!isLoggedIn) {
-    //  navigate("/login");
-    //  return;
-    //}
     setShowReserveDialog(true);
   };
 
@@ -137,183 +126,364 @@ export default function ParkingProfile() {
       totalPrice,
     };
     console.log("reserve payload:", payload);
-    // TODO: axios.post('/api/reserve', payload)
     setShowReserveDialog(false);
     setSelectedHours([]);
   };
 
+  const totalImages = parking.images.length;
+  const prevIndex = (currentImage - 1 + totalImages) % totalImages;
+  const nextIndex = (currentImage + 1) % totalImages;
+
+  const handleNextImage = () => {
+    if (isTransitioning) return;
+    setSlideDirection("right");
+    setIsTransitioning(true);
+    setCurrentImage(nextIndex);
+  };
+
+  const handlePrevImage = () => {
+    if (isTransitioning) return;
+    setSlideDirection("left");
+    setIsTransitioning(true);
+    setCurrentImage(prevIndex);
+  };
+
+  useEffect(() => {
+    if (isTransitioning) {
+      const timer = setTimeout(() => setIsTransitioning(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isTransitioning]);
+
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
+      {/* Dynamic Keyframes for bidirectional slider transition (snappy 300ms) */}
+      <style>{`
+        @keyframes slideInFromRight {
+          from { transform: translateX(80px) scale(0.95); opacity: 0.3; }
+          to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        @keyframes slideInFromLeft {
+          from { transform: translateX(-80px) scale(0.95); opacity: 0.3; }
+          to { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        .animate-slide-right {
+          animation: slideInFromRight 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        .animate-slide-left {
+          animation: slideInFromLeft 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+      `}</style>
+
       {/* Back button */}
-      <div className="bg-background border-b border-border px-4 py-3">
+      <div className="bg-background border-b border-border px-4 py-3 text-right">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors justify-start"
         >
           <ArrowRight size={16} />
-          بازگشت به لیست پارکینگ‌ها
+          <span>بازگشت به لیست پارکینگ‌ها</span>
         </button>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4">
-        {/* ── Image Gallery ── */}
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
-          <div className="relative h-64 md:h-96">
-            <img
-              src={parking.images[currentImage]}
-              alt={parking.name}
-              className="w-full h-full object-cover"
-            />
+      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+        {/* ── Beautiful Stacked Card Deck Image Gallery ── */}
+        <div className="relative flex flex-col items-center justify-center py-6">
+          <div className="relative w-full max-w-3xl h-[320px] md:h-[460px] flex items-center justify-center overflow-visible">
+            {/* Left stacked card with left protrusion */}
+            <div
+              onClick={handlePrevImage}
+              className="absolute left-0 w-1/5 h-[85%] rounded-3xl overflow-hidden shadow-md border border-border/50 opacity-40 -rotate-3 -translate-x-[12%] z-10 transition-all duration-300 hover:opacity-60 cursor-pointer select-none"
+            >
+              <img
+                src={parking.images[prevIndex]}
+                alt="Previous"
+                className="w-full h-full object-cover blur-[0.5px]"
+              />
+              <div className="absolute inset-0 bg-black/25" />
+            </div>
 
-            {/* Image navigation */}
-            {parking.images.length > 1 && (
-              <>
-                <button
-                  onClick={() =>
-                    setCurrentImage((prev) =>
-                      prev === 0 ? parking.images.length - 1 : prev - 1,
-                    )
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
-                >
-                  <ChevronRight size={20} />
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentImage((prev) =>
-                      prev === parking.images.length - 1 ? 0 : prev + 1,
-                    )
-                  }
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {parking.images.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentImage(i)}
-                      className={`w-2 h-2 rounded-full transition-colors ${i === currentImage ? "bg-white" : "bg-white/50"}`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+            {/* Active focused center card */}
+            <div
+              className={`relative w-[65%] md:w-[70%] h-full rounded-3xl overflow-hidden shadow-2xl border border-border/80 z-20 transition-all duration-300
+                ${
+                  isTransitioning
+                    ? slideDirection === "right"
+                      ? "animate-slide-right"
+                      : "animate-slide-left"
+                    : "scale-100 opacity-100"
+                }
+              `}
+            >
+              <img
+                src={parking.images[currentImage]}
+                alt={parking.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+            </div>
 
-            {/* Score badge */}
-            <div className="absolute top-3 left-3 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1">
-              <span>★</span>
-              <span>{parking.score}</span>
-              <span className="text-white/70 text-xs">
-                ({parking.reviewCount})
-              </span>
+            {/* Right stacked card with right protrusion */}
+            <div
+              onClick={handleNextImage}
+              className="absolute right-0 w-1/5 h-[85%] rounded-3xl overflow-hidden shadow-md border border-border/50 opacity-40 rotate-3 translate-x-[12%] z-10 transition-all duration-300 hover:opacity-60 cursor-pointer select-none"
+            >
+              <img
+                src={parking.images[nextIndex]}
+                alt="Next"
+                className="w-full h-full object-cover blur-[0.5px]"
+              />
+              <div className="absolute inset-0 bg-black/20" />
+            </div>
+
+            {/* Slider control arrows */}
+            <div className="absolute inset-x-2 md:inset-x-8 top-1/2 -translate-y-1/2 flex justify-between z-30 pointer-events-none">
+              <button
+                onClick={handlePrevImage}
+                className="pointer-events-auto w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-black/50 hover:bg-black/75 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"
+              >
+                <ChevronRight size={24} />
+              </button>
+              <button
+                onClick={handleNextImage}
+                className="pointer-events-auto w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-black/50 hover:bg-black/75 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"
+              >
+                <ChevronLeft size={24} />
+              </button>
             </div>
           </div>
 
-          {/* Thumbnail strip */}
-          {parking.images.length > 1 && (
-            <div className="flex gap-2 p-3 overflow-x-auto">
-              {parking.images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentImage(i)}
-                  className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${i === currentImage ? "border-primary" : "border-transparent"}`}
-                >
-                  <img
-                    src={img}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Indicators */}
+          <div className="flex gap-2 mt-5 z-30">
+            {parking.images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  if (i !== currentImage) {
+                    setSlideDirection(i > currentImage ? "right" : "left");
+                    setCurrentImage(i);
+                  }
+                }}
+                className={`h-2 rounded-full transition-all duration-300 ${i === currentImage ? "w-8 bg-primary" : "w-2 bg-border-foreground/30 hover:bg-border-foreground/50"}`}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* ── Basic Info ── */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <Button onClick={handleReserve} size="lg" className="shrink-0">
-              <Clock size={16} className="ml-2" />
-              رزرو پارکینگ
-            </Button>
-            <div className="text-right">
-              <h1 className="text-2xl font-bold text-foreground">
-                {parking.name}
-              </h1>
-              <div className="flex items-center gap-1.5 mt-1 justify-end">
+        {/* ── Basic Info with swapped columns & fixed arrow placement ── */}
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Button positioned on the LEFT column (swapped layout) */}
+            <div className="w-full md:w-auto shrink-0 flex justify-center">
+              <Button
+                onClick={handleReserve}
+                size="lg"
+                className="w-full md:w-auto py-6 px-10 text-base font-bold shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-100 transition-all"
+              >
+                <Clock size={18} className="ml-2" />
+                <span>رزرو پارکینگ</span>
+              </Button>
+            </div>
+
+            {/* Name, Score & Address block positioned on the RIGHT column (swapped layout) */}
+            <div className="text-center md:text-right space-y-2.5 w-full md:w-auto">
+              <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start">
+                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+                  {parking.name}
+                </h1>
+
+                {/* Score badge safely relocated beside the name */}
+                <div className="bg-primary/10 border border-primary/20 text-primary px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                  <span className="text-amber-500">★</span>
+                  <span>{parking.score}</span>
+                  <span className="opacity-80">
+                    ({parking.reviewCount} نظر)
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 justify-center md:justify-start">
                 <span className="text-sm text-muted-foreground">
                   {parking.address}
                 </span>
-                <MapPin size={14} className="text-primary shrink-0" />
+                {/* Arrow icon properly positioned on the RIGHT of the address */}
+                <MapPin size={16} className="text-primary shrink-0" />
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-border">
-            <div className="bg-muted rounded-xl p-3 text-center">
-              <Phone size={18} className="text-primary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground mb-0.5">تماس</p>
-              <p className="text-sm font-medium" dir="ltr">
+          {/* ── Info Cards Grid with Postal Code & Hover effect ── */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-4 border-t border-border">
+            {/* Contact Phone Card with functional tel link integration */}
+            <a
+              href={`tel:${parking.phone}`}
+              className="bg-muted/40 rounded-xl p-3.5 text-center border border-transparent hover:border-primary/20 hover:bg-card hover:shadow-md hover:-translate-y-1 transition-all duration-300 group block text-right"
+            >
+              <Phone
+                size={20}
+                className="text-primary mx-auto mb-1.5 transition-transform group-hover:scale-110"
+              />
+              <p className="text-xs text-muted-foreground mb-0.5 text-center">
+                تماس
+              </p>
+              <p
+                className="text-sm font-semibold text-foreground text-center"
+                dir="ltr"
+              >
                 {parking.phone}
               </p>
-            </div>
-            <div className="bg-muted rounded-xl p-3 text-center">
-              <Car size={18} className="text-primary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground mb-0.5">ظرفیت</p>
-              <p className="text-sm font-medium">{parking.capacity} خودرو</p>
-            </div>
-            <div className="bg-muted rounded-xl p-3 text-center">
-              <DollarSign size={18} className="text-primary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground mb-0.5">قیمت</p>
-              <p className="text-sm font-medium">
-                {parking.pricePerHour.toLocaleString()} ت/ساعت
+            </a>
+
+            <div className="bg-muted/40 rounded-xl p-3.5 text-center border border-transparent hover:border-primary/20 hover:bg-card hover:shadow-md hover:-translate-y-1 transition-all duration-300 group text-right">
+              <Car
+                size={20}
+                className="text-primary mx-auto mb-1.5 transition-transform group-hover:scale-110"
+              />
+              <p className="text-xs text-muted-foreground mb-0.5 text-center">
+                ظرفیت
+              </p>
+              <p className="text-sm font-semibold text-foreground text-center">
+                {parking.capacity} خودرو
               </p>
             </div>
-            <div className="bg-muted rounded-xl p-3 text-center">
-              <MapPin size={18} className="text-primary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground mb-0.5">استان</p>
-              <p className="text-sm font-medium">{parking.province}</p>
-            </div>
-          </div>
 
-          {parking.description && (
-            <div className="pt-2 border-t border-border">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {parking.description}
+            <div className="bg-muted/40 rounded-xl p-3.5 text-center border border-transparent hover:border-primary/20 hover:bg-card hover:shadow-md hover:-translate-y-1 transition-all duration-300 group text-right">
+              <DollarSign
+                size={20}
+                className="text-primary mx-auto mb-1.5 transition-transform group-hover:scale-110"
+              />
+              <p className="text-xs text-muted-foreground mb-0.5 text-center">
+                قیمت
+              </p>
+              <p className="text-sm font-semibold text-foreground text-center">
+                {parking.pricePerHour.toLocaleString()} ت / ساعت
               </p>
             </div>
-          )}
-        </div>
 
-        {/* ── Amenities ── */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-          <h2 className="font-semibold text-foreground border-b border-border pb-2">
-            امکانات
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {amenityConfig.map((item) => {
-              const active =
-                parking.amenities[item.key as keyof typeof parking.amenities];
-              return (
-                <div
-                  key={item.key}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm ${
-                    active
-                      ? "border-primary/30 bg-primary/10 text-primary"
-                      : "border-border bg-muted text-muted-foreground opacity-50"
-                  }`}
-                >
-                  <span>{item.label}</span>
-                </div>
-              );
-            })}
+            <div className="bg-muted/40 rounded-xl p-3.5 text-center border border-transparent hover:border-primary/20 hover:bg-card hover:shadow-md hover:-translate-y-1 transition-all duration-300 group text-right">
+              <MapPin
+                size={20}
+                className="text-primary mx-auto mb-1.5 transition-transform group-hover:scale-110"
+              />
+              <p className="text-xs text-muted-foreground mb-0.5 text-center">
+                استان
+              </p>
+              <p className="text-sm font-semibold text-foreground text-center">
+                {parking.province}
+              </p>
+            </div>
+
+            <div className="col-span-2 sm:col-span-1 bg-muted/40 rounded-xl p-3.5 text-center border border-transparent hover:border-primary/20 hover:bg-card hover:shadow-md hover:-translate-y-1 transition-all duration-300 group text-right">
+              <Hash
+                size={20}
+                className="text-primary mx-auto mb-1.5 transition-transform group-hover:scale-110"
+              />
+              <p className="text-xs text-muted-foreground mb-0.5 text-center">
+                کد پستی
+              </p>
+              <p
+                className="text-sm font-semibold text-foreground text-center"
+                dir="ltr"
+              >
+                {parking.postalCode}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* ── Map ── */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
-          <h2 className="font-semibold text-foreground border-b border-border pb-2">
+        {/* ── Description Header & Block ── */}
+        {parking.description && (
+          <div className="bg-card border border-border rounded-2xl p-5 space-y-3 text-right">
+            <div className="flex items-center gap-2 border-b border-border pb-2.5 justify-start">
+              <Info size={18} className="text-primary" />
+              <h2 className="font-bold text-foreground text-base">
+                توضیحات پارکینگ
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed text-right">
+              {parking.description}
+            </p>
+          </div>
+        )}
+
+        {/* ── Elegant Amenities Section with Status Dots ── */}
+        <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-sm text-right">
+          <div className="flex items-center gap-2 border-b border-border pb-2.5 justify-start">
+            <Shield size={18} className="text-primary" />
+            <h2 className="font-bold text-foreground text-base">
+              امکانات امنیتی و رفاهی
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* CCTV Security Display */}
+            <div
+              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
+                parking.amenities.cctv
+                  ? "bg-primary/5 border-primary/20 shadow-sm"
+                  : "border-border bg-muted/30 opacity-60"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Eye
+                  className={`h-5 w-5 ${parking.amenities.cctv ? "text-primary animate-pulse" : "text-muted-foreground"}`}
+                />
+                <span className="font-bold text-sm text-foreground">
+                  دوربین مداربسته
+                </span>
+              </div>
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.cctv ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
+              />
+            </div>
+
+            {/* Physical Security Guard Display */}
+            <div
+              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
+                parking.amenities.security
+                  ? "bg-primary/5 border-primary/20 shadow-sm"
+                  : "border-border bg-muted/30 opacity-60"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Shield
+                  className={`h-5 w-5 ${parking.amenities.security ? "text-primary animate-pulse" : "text-muted-foreground"}`}
+                />
+                <span className="font-bold text-sm text-foreground">
+                  نگهبان مستقر
+                </span>
+              </div>
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.security ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
+              />
+            </div>
+
+            {/* Covered Roof Display */}
+            <div
+              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
+                parking.amenities.covered
+                  ? "bg-primary/5 border-primary/20 shadow-sm"
+                  : "border-border bg-muted/30 opacity-60"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Home
+                  className={`h-5 w-5 ${parking.amenities.covered ? "text-primary animate-pulse" : "text-muted-foreground"}`}
+                />
+                <span className="font-bold text-sm text-foreground">
+                  محیط سقف‌دار
+                </span>
+              </div>
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.covered ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Original Leaflet Map restored ── */}
+        <div className="bg-card border border-border rounded-2xl p-5 space-y-3 text-right">
+          <h2 className="font-semibold text-foreground border-b border-border pb-2 text-right">
             موقعیت روی نقشه
           </h2>
           <div className="rounded-xl overflow-hidden border border-border h-64">
@@ -328,14 +498,15 @@ export default function ParkingProfile() {
               <Marker position={[parking.latitude, parking.longitude]} />
             </MapContainer>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground justify-end">
+          {/* Map Footer: Right-aligned text with MapPin icon on the RIGHT */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground justify-end bg-muted/40 p-3 rounded-xl border border-border/40 font-semibold">
             <span>{parking.address}</span>
-            <MapPin size={14} className="text-primary" />
+            <MapPin size={16} className="text-primary shrink-0" />
           </div>
         </div>
       </div>
 
-      {/* ── Reserve Dialog ── */}
+      {/* ── ORIGINAL UNTOUCHED RESERVE DIALOG ── */}
       {showReserveDialog && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
