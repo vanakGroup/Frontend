@@ -273,18 +273,6 @@ export default function ParkingProfile() {
         {/* ── Basic Info with swapped columns & fixed arrow placement ── */}
         <div className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Button positioned on the LEFT column (swapped layout) */}
-            <div className="w-full md:w-auto shrink-0 flex justify-center">
-              <Button
-                onClick={handleReserve}
-                size="lg"
-                className="w-full md:w-auto py-6 px-10 text-base font-bold shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-100 transition-all"
-              >
-                <Clock size={18} className="ml-2" />
-                <span>رزرو پارکینگ</span>
-              </Button>
-            </div>
-
             {/* Name, Score & Address block positioned on the RIGHT column (swapped layout) */}
             <div className="text-center md:text-right space-y-2.5 w-full md:w-auto">
               <div className="flex flex-col md:flex-row items-center gap-3 justify-center md:justify-start">
@@ -303,12 +291,24 @@ export default function ParkingProfile() {
               </div>
 
               <div className="flex items-center gap-2 justify-center md:justify-start">
+                {/* Arrow icon properly positioned on the RIGHT of the address */}
+                <MapPin size={16} className="text-primary shrink-0" />
                 <span className="text-sm text-muted-foreground">
                   {parking.address}
                 </span>
-                {/* Arrow icon properly positioned on the RIGHT of the address */}
-                <MapPin size={16} className="text-primary shrink-0" />
               </div>
+            </div>
+
+            {/* Button positioned on the LEFT column (swapped layout) */}
+            <div className="w-full md:w-auto shrink-0 flex justify-center">
+              <Button
+                onClick={handleReserve}
+                size="lg"
+                className="w-full md:w-auto py-6 px-10 text-base font-bold shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-100 transition-all"
+              >
+                <Clock size={18} className="ml-2" />
+                <span>رزرو پارکینگ</span>
+              </Button>
             </div>
           </div>
 
@@ -481,7 +481,7 @@ export default function ParkingProfile() {
           </div>
         </div>
 
-        {/* ── Original Leaflet Map restored ── */}
+        {/* ── Original Leaflet Map── */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-3 text-right">
           <h2 className="font-semibold text-foreground border-b border-border pb-2 text-right">
             موقعیت روی نقشه
@@ -499,9 +499,12 @@ export default function ParkingProfile() {
             </MapContainer>
           </div>
           {/* Map Footer: Right-aligned text with MapPin icon on the RIGHT */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground justify-end bg-muted/40 p-3 rounded-xl border border-border/40 font-semibold">
-            <span>{parking.address}</span>
+          <div
+            dir="rtl"
+            className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/40 p-3 rounded-xl border border-border/40 font-semibold"
+          >
             <MapPin size={16} className="text-primary shrink-0" />
+            <span className="text-right flex-1">{parking.address}</span>
           </div>
         </div>
       </div>
