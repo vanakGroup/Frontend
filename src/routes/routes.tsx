@@ -14,6 +14,8 @@ import AboutUs from "@/pages/AboutUs";
 import ExploreParking from "@/pages/exploreParking";
 import Vehi from "@/pages/vehi";
 import ContactUs from "@/pages/contactUs";
+import Wallet from "@/pages/Wallet";
+
 import UserProfile from "@/pages/dashboard/UserProfile";
 export const router = createBrowserRouter([
   {
@@ -55,6 +57,10 @@ export const router = createBrowserRouter([
       {
         path: "/contactus",
         element: <ContactUs />,
+      },
+      {
+        path: "/wallet",
+        element: <Wallet />,
       },
       // {
       // 	path: "/AboutUs",
