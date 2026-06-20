@@ -28,12 +28,6 @@ export const SideBar = ({ children }: SideBarProps) => {
         `}
         dir="rtl"
       >
-        <button
-          onClick={collapseSidebar}
-          className="absolute top-6 left-6 p-2 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-full transition-colors z-[100]"
-        >
-          <X size={24} />
-        </button>
 
         <div className="flex flex-col flex-1 px-3 md:mt-0 mt-2">{children}</div>
       </aside>
