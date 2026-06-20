@@ -10,14 +10,19 @@ import { useSidebarStore } from "@/store/sidebarStore/sidebarStore";
 const dashboardLinks = [
   {
     label: "پارکینگ من",
-    to: "/dashboard/my-parking",
+    to: "/dashboard",
     icon: <ParkingSquare size={20} />,
   },
-  { label: "ویرایش حساب کاربری", to: "/dashboard/profile", icon: <User size={20} /> },
+  {
+    label: "ویرایش حساب کاربری",
+    to: "/dashboard/profile",
+    icon: <User size={20} />,
+  },
 ];
 
 const navLinks = [
   { label: "صفحه اصلی", to: "/" },
+  { label: "داشبورد", to: "/dashboard" },
   { label: "درباره ما", to: "/aboutus" },
   { label: "تماس با ما", to: "/contactus" },
 ];
@@ -43,8 +48,8 @@ export default function DashboardLayout() {
       <MobileNavBar />
 
       {/* Main content */}
-      <main 
-        className={`${isExpanded ? "md:mr-64" : "md:mr-0"} pt-16 pb-24 md:pb-8 min-h-screen transition-all duration-300 ease-in-out`} 
+      <main
+        className={`${isExpanded ? "md:mr-64" : "md:mr-0"} pt-16 pb-24 md:pb-8 min-h-screen transition-all duration-300 ease-in-out`}
         dir="rtl"
       >
         <div className="p-4 md:p-6">
