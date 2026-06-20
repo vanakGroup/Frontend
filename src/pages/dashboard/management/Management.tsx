@@ -25,16 +25,8 @@ export default function Management() {
     <div>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => navigate("/dashboard/my-parking")}
-          className="p-2 rounded-lg hover:bg-accent transition-colors"
-        >
-          <ArrowRight size={20} />
-        </button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground">
-            مدیریت پارکینگ‌ها
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">پارکینگ‌ من</h1>
           <p className="text-muted-foreground text-sm mt-1">
             افزودن، ویرایش و حذف پارکینگ‌های شما
           </p>

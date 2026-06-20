@@ -69,12 +69,9 @@ const customLocale = {
 };
 
 const amenityList = [
-  { key: "cctv", label: "دوربین مداربسته (CCTV)", icon: "📷" },
-  { key: "evCharger", label: "شارژ خودرو برقی", icon: "⚡" },
-  { key: "motorcycle", label: "موتورسیکلت پذیر", icon: "🏍️" },
-  { key: "heavyVehicle", label: "اتومبیل‌های سنگین پذیر", icon: "🚛" },
-  { key: "wheelchair", label: "رمپ دارد (ویژه معلولین)", icon: "♿" },
-  { key: "covered", label: "مسقف", icon: "🏠" },
+  { key: "cctv", label: "دوربین مداربسته (CCTV)" },
+  { key: "security", label: "نگهبان" },
+  { key: "covered", label: "مسقف" },
 ];
 
 // --- Types ---
@@ -102,10 +99,7 @@ interface DateObject {
 
 interface Amenities {
   cctv: boolean;
-  evCharger: boolean;
-  motorcycle: boolean;
-  heavyVehicle: boolean;
-  wheelchair: boolean;
+  security: boolean;
   covered: boolean;
 }
 
@@ -178,10 +172,7 @@ export default function ParkingForm() {
 
   const [amenities, setAmenities] = useState<Amenities>({
     cctv: false,
-    evCharger: false,
-    motorcycle: false,
-    heavyVehicle: false,
-    wheelchair: false,
+    security: false,
     covered: false,
   });
 
