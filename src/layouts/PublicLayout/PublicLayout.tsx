@@ -38,7 +38,7 @@ const PublicLayout = () => {
     dashboardLinks.unshift({
       label: "پنل مدیریت",
       to: "/admin",
-      icon: <ShieldUser size={20} className="text-primary" />,
+      icon: <ShieldUser size={20} />,
     });
   }
 
