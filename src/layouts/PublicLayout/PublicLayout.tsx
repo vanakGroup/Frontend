@@ -5,7 +5,15 @@ import { MobileNavBar } from "../../components/Custom/MobileNavBar";
 import { DesktopSideBar } from "../../components/Custom/DesktopSideBar";
 import { MobileSideBar } from "../../components/Custom/MobileSideBar";
 import { useSidebarStore } from "../../store/sidebarStore/sidebarStore";
-import { Home, Layers, Info, Phone, ShieldUser, ParkingSquare, User } from "lucide-react";
+import {
+  Home,
+  Layers,
+  Info,
+  Phone,
+  ShieldUser,
+  ParkingSquare,
+  User,
+} from "lucide-react";
 import Footer from "@/components/Custom/Footer";
 import useUserStore from "@/store/userStore/userStore";
 
@@ -30,12 +38,21 @@ const PublicLayout = () => {
     { label: "صفحه اصلی", to: "/", icon: <Home size={18} /> },
     { label: "درباره ما", to: "/aboutus", icon: <Info size={18} /> },
     { label: "تماس با ما", to: "/contactus", icon: <Phone size={18} /> },
+    { label: "مشاهده پارکینگ ها", to: "/parking" },
   ];
 
   const dashboardLinks = [
     { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
-    { label: "پارکینگ من", to: "/dashboard/management", icon: <ParkingSquare size={20} /> },
-    { label: "ویرایش حساب کاربری", to: "/dashboard/profile", icon: <User size={20} /> },
+    {
+      label: "پارکینگ من",
+      to: "/dashboard/management",
+      icon: <ParkingSquare size={20} />,
+    },
+    {
+      label: "ویرایش حساب کاربری",
+      to: "/dashboard/profile",
+      icon: <User size={20} />,
+    },
   ];
 
   if (role === "ADMIN") {
