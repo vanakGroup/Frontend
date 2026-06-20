@@ -61,6 +61,7 @@ export default function OTPStep({
           phone: loginRes.data.phone,
           accessToken: loginRes.data.accessToken,
           refreshToken: loginRes.data.refreshToken,
+          role: loginRes.data.role,
         });
 
         // Fetch user profile immediately to update username in navbar

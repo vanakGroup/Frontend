@@ -5,8 +5,9 @@ import { MobileNavBar } from "../../components/Custom/MobileNavBar";
 import { DesktopSideBar } from "../../components/Custom/DesktopSideBar";
 import { MobileSideBar } from "../../components/Custom/MobileSideBar";
 import { useSidebarStore } from "../../store/sidebarStore/sidebarStore";
-import { Home, Layers, Info, Phone } from "lucide-react";
+import { Home, Layers, Info, Phone, ShieldUser } from "lucide-react";
 import Footer from "@/components/Custom/Footer";
+import useUserStore from "@/store/userStore/userStore";
 
 const PublicLayout = () => {
   const { isExpanded } = useSidebarStore();
@@ -15,10 +16,12 @@ const PublicLayout = () => {
   const routesWithoutNavbar = ["/login"];
   const shouldShowNavbar = !routesWithoutNavbar.includes(location.pathname);
 
-  const dashboardRoutes = ["/blank", "/vehi"];
+  const dashboardRoutes = ["/blank", "/vehi", "/admin"];
   const isDashboardPage = dashboardRoutes.some((route) =>
     location.pathname.startsWith(route),
   );
+
+  const role = useUserStore((state) => state.role);
 
   const mainNavLinks = [
     { label: "صفحه اصلی", to: "/", icon: <Home size={18} /> },
@@ -30,6 +33,15 @@ const PublicLayout = () => {
     { label: "داشبورد", to: "/login", icon: <Home size={20} /> },
     { label: "blank", to: "/blank", icon: <Layers size={20} /> },
   ];
+
+  if (role === "ADMIN") {
+    dashboardLinks.unshift({
+      label: "پنل مدیریت",
+      to: "/admin",
+      icon: <ShieldUser size={20} className="text-primary" />,
+    });
+  }
+
   const shouldShowFooter = shouldShowNavbar && !isDashboardPage;
 
   return (
