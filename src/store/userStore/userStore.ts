@@ -33,6 +33,7 @@ const useUserStore = create<UserState>()(
       accessToken: null,
       refreshToken: null,
       rememberMe: false,
+      role: "ADMIN",
 
       setRememberMe: (rememberMe) => set({ rememberMe }),
 
@@ -43,6 +44,7 @@ const useUserStore = create<UserState>()(
           phone: data.phone,
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
+          role: data.role,
         }),
 
       clearAuth: () =>
@@ -52,6 +54,7 @@ const useUserStore = create<UserState>()(
           accessToken: null,
           refreshToken: null,
           rememberMe: false,
+          role: null,
         }),
     }),
     {

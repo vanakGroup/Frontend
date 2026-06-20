@@ -4,6 +4,7 @@ export interface UserState {
   accessToken: string | null;
   refreshToken: string | null;
   rememberMe: boolean;
+  role: "USER" | "ADMIN" | null;
   setRememberMe: (rememberMe: boolean) => void;
 
   // Actions
@@ -12,6 +13,7 @@ export interface UserState {
     phone: string;
     accessToken: string;
     refreshToken: string;
+    role: "USER" | "ADMIN";
   }) => void;
   clearAuth: () => void;
 }

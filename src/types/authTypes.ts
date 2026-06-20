@@ -24,5 +24,6 @@ export interface LoginResponse {
     accessToken: string;
     refreshToken: string;
     phone: string;
+    role: "USER" | "ADMIN";
   };
 }
