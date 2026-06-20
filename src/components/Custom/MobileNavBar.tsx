@@ -1,6 +1,7 @@
 import { useSidebarStore } from "@/store/sidebarStore/sidebarStore";
 import { Menu } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { Home, Car } from "lucide-react";
 
 export const MobileNavBar = () => {
   const { toggleSidebar } = useSidebarStore();
@@ -24,7 +25,7 @@ export const MobileNavBar = () => {
             `text-sm font-semibold px-3 py-2 rounded-lg ${isActive ? "text-primary bg-primary/10" : "text-muted-foreground"}`
           }
         >
-          پارکینگ
+          <Car />
         </NavLink>
         <NavLink
           to="/"
@@ -32,7 +33,7 @@ export const MobileNavBar = () => {
             `text-sm font-semibold px-3 py-2 rounded-lg ${isActive ? "text-primary bg-primary/10" : "text-muted-foreground"}`
           }
         >
-          خانه
+          <Home />
         </NavLink>
       </div>
     </div>
