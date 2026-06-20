@@ -46,18 +46,26 @@ function Button({
   variant = "default",
   size = "default",
   disabled,
+  isLoading,
   children,
   ...props
 }: ButtonPrimitive.Props &
-  VariantProps<typeof buttonVariants> & { disabled?: boolean }) {
+  VariantProps<typeof buttonVariants> & { disabled?: boolean; isLoading?: boolean }) {
   return (
     <ButtonPrimitive
       data-slot="button"
-      disabled={disabled}
+      disabled={disabled || isLoading}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     >
-      {disabled ? <Loader2 className="animate-spin" /> : children}
+      {isLoading ? (
+        <>
+          <Loader2 className="animate-spin mr-2" />
+          {children}
+        </>
+      ) : (
+        children
+      )}
     </ButtonPrimitive>
   );
 }

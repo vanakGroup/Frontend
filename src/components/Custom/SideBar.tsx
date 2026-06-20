@@ -30,7 +30,7 @@ export const SideBar = ({ children }: SideBarProps) => {
       >
         <button
           onClick={collapseSidebar}
-          className="md:hidden absolute top-6 left-6 p-2 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-full transition-colors"
+          className="absolute top-6 left-6 p-2 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-full transition-colors z-[100]"
         >
           <X size={24} />
         </button>
