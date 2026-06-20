@@ -1,53 +1,98 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { getParkingInfo } from "@/services/parkingService";
 
-// Mock data — replace with API later
-const mockSchedule: Record<
-  number,
-  {
-    date: string;
-    dayName: string;
-    timeFrames: { start: number; end: number }[];
-  }[]
-> = {
-  1: [
-    {
-      date: "1405-3-20",
-      dayName: "پنجشنبه",
-      timeFrames: [
-        { start: 8, end: 12 },
-        { start: 15, end: 18 },
-      ],
-    },
-    {
-      date: "1405-3-21",
-      dayName: "جمعه",
-      timeFrames: [{ start: 10, end: 14 }],
-    },
-  ],
-  2: [
-    {
-      date: "1405-3-20",
-      dayName: "پنجشنبه",
-      timeFrames: [{ start: 9, end: 13 }],
-    },
-  ],
-  3: [],
-};
+interface Slot {
+  id: number;
+  date: string;
+  hour: number;
+  isBooked: boolean;
+}
 
-const mockParkingNames: Record<number, string> = {
-  1: "پارکینگ اول",
-  2: "پارکینگ دوم",
-  3: "پارکینگ سوم",
+interface TimeFrame {
+  start: number;
+  end: number;
+}
+
+interface DaySchedule {
+  date: string;
+  dayName: string;
+  timeFrames: TimeFrame[];
+}
+
+const buildSchedule = (slots: Slot[]): DaySchedule[] => {
+  const byDate = new Map<string, number[]>();
+
+  slots.forEach((slot) => {
+    const hours = byDate.get(slot.date) ?? [];
+    hours.push(slot.hour);
+    byDate.set(slot.date, hours);
+  });
+
+  const dayMap: Record<number, string> = {
+    0: "شنبه",
+    1: "یکشنبه",
+    2: "دوشنبه",
+    3: "سه‌شنبه",
+    4: "چهارشنبه",
+    5: "پنجشنبه",
+    6: "جمعه",
+  };
+
+  const result: DaySchedule[] = [];
+
+  byDate.forEach((hours, date) => {
+    const sorted = [...hours].sort((a, b) => a - b);
+    const frames: TimeFrame[] = [];
+    let start = sorted[0];
+    let prev = sorted[0];
+
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === prev + 1) {
+        prev = sorted[i];
+      } else {
+        frames.push({ start, end: prev + 1 });
+        start = sorted[i];
+        prev = sorted[i];
+      }
+    }
+    frames.push({ start, end: prev + 1 });
+
+    const dayName = dayMap[new Date(date).getDay()] ?? "";
+    result.push({ date, dayName, timeFrames: frames });
+  });
+
+  return result.sort((a, b) => a.date.localeCompare(b.date));
 };
 
 export default function ParkingSlots() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const parkingId = Number(id);
 
-  const schedule = mockSchedule[parkingId] ?? [];
-  const parkingName = mockParkingNames[parkingId] ?? "پارکینگ";
+  const [parkingName, setParkingName] = useState("");
+  const [schedule, setSchedule] = useState<DaySchedule[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    getParkingInfo(id)
+      .then((res) => {
+        const data = res.data;
+        setParkingName(data.title);
+        setSchedule(buildSchedule(data.slots || []));
+      })
+      .catch((err) => console.error("get slots error:", err))
+      .finally(() => setIsLoading(false));
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 text-center text-muted-foreground">
+        در حال بارگذاری زمان‌بندی...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto">

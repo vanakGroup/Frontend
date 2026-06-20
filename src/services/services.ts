@@ -41,7 +41,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-
 export const getData = async ({ endPoint, headers, params }: GetParams) => {
   try {
     const response: AxiosResponse = await apiClient.get(endPoint, {
@@ -55,7 +54,6 @@ export const getData = async ({ endPoint, headers, params }: GetParams) => {
   }
 };
 
-
 export const postData = async ({ endPoint, data, headers }: PostParams) => {
   try {
     const response: AxiosResponse = await apiClient.post(endPoint, data, {
@@ -67,7 +65,6 @@ export const postData = async ({ endPoint, data, headers }: PostParams) => {
     throw error;
   }
 };
-
 
 export const postImageData = async ({ endPoint, data }: PostParams) => {
   try {
@@ -81,6 +78,17 @@ export const postImageData = async ({ endPoint, data }: PostParams) => {
   }
 };
 
+export const putImageData = async ({ endPoint, data }: PutParams) => {
+  try {
+    const response: AxiosResponse = await apiClient.put(endPoint, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("error in putImageData", error);
+    throw error;
+  }
+};
 
 export const patchData = async ({ endPoint, data, headers }: PatchParams) => {
   try {
@@ -94,7 +102,6 @@ export const patchData = async ({ endPoint, data, headers }: PatchParams) => {
   }
 };
 
-
 export const putData = async ({ endPoint, data }: PutParams) => {
   try {
     const response: AxiosResponse = await apiClient.put(endPoint, data);
@@ -104,7 +111,6 @@ export const putData = async ({ endPoint, data }: PutParams) => {
     throw error;
   }
 };
-
 
 export const deleteData = async ({ endPoint, data, headers }: DeleteParams) => {
   try {

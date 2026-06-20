@@ -6,7 +6,7 @@ import Temp from "@/pages/Temp";
 import Login from "@/pages/Login";
 import ComponentTest from "@/pages/ComponentTest";
 import DashboardLayout from "@/pages/dashboard/DashboardLayout";
-import MyParking from "@/pages/dashboard/MyParking";
+//import MyParking from "@/pages/dashboard/MyParking";
 import Management from "@/pages/dashboard/management/Management";
 import ParkingForm from "@/pages/dashboard/management/ParkingForm";
 import ParkingSlots from "@/pages/dashboard/management/ParkingSlots";
