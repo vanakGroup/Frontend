@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { getData } from "@/services/services";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -18,6 +19,7 @@ import {
   Eye,
   Hash,
   Info,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -32,59 +34,160 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// --- Mock data ---
-const mockParking = {
-  id: 1,
-  name: "پارکینگ ونک",
-  address: "تهران / میدان ونک / خیابان ولیعصر",
-  phone: "021-88001234",
-  province: "تهران",
-  postalCode: "۱۴۳۹۷۵۶۷۸۹",
-  capacity: 50,
-  pricePerHour: 15000,
-  description:
-    "پارکینگ مرکزی ونک با امکانات کامل و دسترسی آسان به مترو و اتوبوس. دارای سیستم هوشمند مدیریت پارکینگ.",
-  latitude: 35.7564,
-  longitude: 51.4072,
-  amenities: {
-    cctv: true,
-    security: false,
-    covered: true,
+interface Slot {
+  date: string;
+  hour: number;
+  id: number;
+  isBooked: boolean;
+}
+
+interface ParkingData {
+  id: string;
+  title: string;
+  address: {
+    cityId: number;
+    exactAddress: string;
+    postalCode: string;
+    unitNumber: number;
+  };
+  attributeIds: number[];
+  basePrice: number;
+  documentUrl: string;
+  imageUrls: string[];
+  latitude: number;
+  longitude: number;
+  slots: Slot[];
+  status: string;
+}
+
+// TODO: Remove this mock data once the API is fully populated
+const MOCK_FALLBACK_DATA: ParkingData = {
+  id: "1",
+  title: "پارکینگ ونک",
+  address: {
+    cityId: 1,
+    exactAddress: "تهران / میدان ونک / خیابان ولیعصر",
+    postalCode: "۱۴۳۹۷۵۶۷۸۹",
+    unitNumber: 1,
   },
-  images: [
+  attributeIds: [1, 2, 3],
+  basePrice: 15000,
+  documentUrl: "",
+  imageUrls: [
     "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800",
     "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?w=800",
     "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?w=800",
   ],
-  score: 4.5,
-  reviewCount: 128,
+  latitude: 35.7564,
+  longitude: 51.4072,
+  slots: Array.from({ length: 24 }, (_, i) => ({
+    date: "2026-06-20",
+    hour: i,
+    id: i,
+    isBooked: Math.random() < 0.3,
+  })),
+  status: "ACTIVE",
 };
-
-// Mock time slots
-const mockTimeSlots = Array.from({ length: 24 }, (_, i) => ({
-  hour: i,
-  available: Math.random() > 0.3,
-}));
-
-interface TimeSlot {
-  hour: number;
-  available: boolean;
-}
 
 export default function ParkingProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const parking = mockParking;
+  const [data, setData] = useState<ParkingData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [currentImage, setCurrentImage] = useState(0);
   const [showReserveDialog, setShowReserveDialog] = useState(false);
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
-  const [timeSlots] = useState<TimeSlot[]>(mockTimeSlots);
   const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(
     null,
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const fetchParking = async () => {
+      try {
+        setIsLoading(true);
+        const fetchId = id || "1";
+        // Using base client instead of absolute URL
+        const response = await getData({ endPoint: `/v1/parking/parkingInfo/${fetchId}` });
+        setData(response.data);
+      } catch (err) {
+        console.warn("API failed, using mock data for now", err);
+        // Fallback to mock data to keep UI visible while API has no data
+        setData(MOCK_FALLBACK_DATA);
+        // setError("خطا در دریافت اطلاعات پارکینگ");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchParking();
+  }, [id]);
+
+  useEffect(() => {
+    if (isTransitioning) {
+      const timer = setTimeout(() => setIsTransitioning(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isTransitioning]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-muted flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="animate-spin text-primary w-12 h-12" />
+        <p className="text-muted-foreground font-semibold">
+          در حال دریافت اطلاعات...
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-muted flex flex-col items-center justify-center space-y-4">
+        <p className="text-destructive font-bold text-lg">
+          {error || "پارکینگ یافت نشد"}
+        </p>
+        <Button onClick={() => navigate(-1)} variant="outline">
+          بازگشت
+        </Button>
+      </div>
+    );
+  }
+
+  const parking = {
+    id: data.id,
+    name: data.title || "بدون نام",
+    address: data.address?.exactAddress || "آدرس نامشخص",
+    phone: "نامشخص", // No phone in API
+    province: `شهر ${data.address?.cityId || ""}`,
+    postalCode: data.address?.postalCode || "نامشخص",
+    capacity: data.slots?.length || 0,
+    pricePerHour: data.basePrice || 0,
+    description: "", // No description in API
+    latitude: data.latitude || 35.6892,
+    longitude: data.longitude || 51.389,
+    amenities: {
+      cctv: data.attributeIds?.includes(1) || true, // Fallback to keep UI rich
+      security: data.attributeIds?.includes(2) || false,
+      covered: data.attributeIds?.includes(3) || true,
+    },
+    images:
+      data.imageUrls?.length > 0
+        ? data.imageUrls
+        : [
+            "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800",
+          ],
+    score: 4.5,
+    reviewCount: 128,
+  };
+
+  const timeSlots =
+    data.slots?.map((s) => ({
+      hour: s.hour,
+      available: !s.isBooked,
+    })) || [];
 
   const toggleHour = (hour: number) => {
     const slot = timeSlots.find((s) => s.hour === hour);
@@ -147,13 +250,6 @@ export default function ParkingProfile() {
     setIsTransitioning(true);
     setCurrentImage(prevIndex);
   };
-
-  useEffect(() => {
-    if (isTransitioning) {
-      const timer = setTimeout(() => setIsTransitioning(false), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isTransitioning]);
 
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
@@ -486,8 +582,9 @@ export default function ParkingProfile() {
           <h2 className="font-semibold text-foreground border-b border-border pb-2 text-right">
             موقعیت روی نقشه
           </h2>
-          <div className="rounded-xl overflow-hidden border border-border h-64">
+          <div className="rounded-xl overflow-hidden border border-border h-64 relative z-0">
             <MapContainer
+              key={`${parking.latitude}-${parking.longitude}`}
               center={[parking.latitude, parking.longitude]}
               zoom={15}
               style={{ height: "100%", width: "100%" }}

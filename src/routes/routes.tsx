@@ -50,7 +50,7 @@ export const router = createBrowserRouter([
       },
       { path: "/aboutus", element: <AboutUs /> },
       {
-        path: "/parkings",
+        path: "/parking",
         element: <ExploreParking />,
       },
       {
@@ -70,48 +70,38 @@ export const router = createBrowserRouter([
         element: <Wallet />,
       },
       {
-        path: "/parkings/:id",
+        path: "/parking/:id",
         element: <ParkingProfile />,
       },
-
-      // {
-      // 	path: "/AboutUs",
-      // 	element: <AboutUs />,
-      // },
-      // {
-    ],
-  },
-  {
-    path: "/dashboard",
-    element: <DashboardLayout />,
-    children: [
-      /*{
-        index: true, 
-        element: <MyParking />,
-      },*/
       {
-        index: true,
-        element: <Management />,
-      },
-      {
-        path: "management",
-        element: <Management />,
-      },
-      {
-        path: "management/add",
-        element: <ParkingForm />,
-      },
-      {
-        path: "management/edit/:id",
-        element: <ParkingForm />,
-      },
-      {
-        path: "management/slots/:id",
-        element: <ParkingSlots />,
-      },
-      {
-        path: "profile",
-        element: <UserProfile />,
+        path: "/dashboard",
+        element: <DashboardLayout />,
+        children: [
+          {
+            index: true,
+            element: <Management />,
+          },
+          {
+            path: "management",
+            element: <Management />,
+          },
+          {
+            path: "management/add",
+            element: <ParkingForm />,
+          },
+          {
+            path: "management/edit/:id",
+            element: <ParkingForm />,
+          },
+          {
+            path: "management/slots/:id",
+            element: <ParkingSlots />,
+          },
+          {
+            path: "profile",
+            element: <UserProfile />,
+          },
+        ],
       },
     ],
   },

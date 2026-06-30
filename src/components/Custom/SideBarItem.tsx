@@ -6,12 +6,16 @@ interface SidebarItemProps {
   label: string;
   to: string;
   onClick?: () => void;
+  end?: boolean;
 }
 
-export const SideBarItem = ({ icon, label, to, onClick }: SidebarItemProps) => {
+export const SideBarItem = ({ icon, label, to, onClick, end }: SidebarItemProps) => {
+  // If no explicit 'end' prop is passed, default to true for the root dashboard to prevent layout bugs
+  const isEnd = end !== undefined ? end : to === "/dashboard" || to === "/";
   return (
     <NavLink
       to={to}
+      end={isEnd}
       onClick={onClick}
       dir="rtl"
       className={({ isActive }) => `
