@@ -15,7 +15,7 @@ export const DesktopNavBar = ({ showToggle, links }: Props) => {
   const Navigate = useNavigate();
 
   return (
-    <header className="hidden md:flex fixed top-0 left-0 right-0 h-16 border-b border-border bg-background/80 backdrop-blur-md z-[60] items-center justify-between px-6">
+    <header className="hidden md:flex fixed top-0 left-0 right-0 h-16 border-b border-border bg-background/80 backdrop-blur-md z-[80] items-center justify-between px-6">
       <div className="flex items-center gap-4">
         {phone ? (
           <div className="flex items-center gap-4" dir="rtl">

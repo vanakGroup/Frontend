@@ -8,7 +8,7 @@ export const MobileNavBar = () => {
 
   return (
     <div
-      className="md:hidden fixed bottom-6 left-4 right-4 h-16 px-6 bg-background/85 backdrop-blur-lg border border-border shadow-2xl rounded-2xl z-50 flex items-center justify-between"
+      className="md:hidden fixed bottom-6 left-4 right-4 h-16 px-6 bg-background/85 backdrop-blur-lg border border-border shadow-2xl rounded-2xl z-[80] flex items-center justify-between"
       dir="rtl"
     >
       <button

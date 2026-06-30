@@ -5,7 +5,15 @@ import { MobileNavBar } from "../../components/Custom/MobileNavBar";
 import { DesktopSideBar } from "../../components/Custom/DesktopSideBar";
 import { MobileSideBar } from "../../components/Custom/MobileSideBar";
 import { useSidebarStore } from "../../store/sidebarStore/sidebarStore";
-import { Home, Layers, Info, Phone, ShieldUser } from "lucide-react";
+import {
+  Home,
+  Layers,
+  Info,
+  Phone,
+  ShieldUser,
+  ParkingSquare,
+  User,
+} from "lucide-react";
 import Footer from "@/components/Custom/Footer";
 import useUserStore from "@/store/userStore/userStore";
 
@@ -16,22 +24,35 @@ const PublicLayout = () => {
   const routesWithoutNavbar = ["/login"];
   const shouldShowNavbar = !routesWithoutNavbar.includes(location.pathname);
 
-  const dashboardRoutes = ["/blank", "/vehi", "/admin"];
+  const dashboardRoutes = ["/blank", "/vehi", "/admin", "/dashboard"];
   const isDashboardPage = dashboardRoutes.some((route) =>
     location.pathname.startsWith(route),
   );
 
   const role = useUserStore((state) => state.role);
+  const accessToken = useUserStore((state) => state.accessToken);
+  const isLoggedIn = !!accessToken;
+  const shouldShowSidebar = isLoggedIn;
 
   const mainNavLinks = [
     { label: "صفحه اصلی", to: "/", icon: <Home size={18} /> },
     { label: "درباره ما", to: "/aboutus", icon: <Info size={18} /> },
     { label: "تماس با ما", to: "/contactus", icon: <Phone size={18} /> },
+    { label: "مشاهده پارکینگ ها", to: "/parking" },
   ];
 
   const dashboardLinks = [
-    { label: "داشبورد", to: "/login", icon: <Home size={20} /> },
-    { label: "blank", to: "/blank", icon: <Layers size={20} /> },
+    { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
+    {
+      label: "پارکینگ من",
+      to: "/dashboard/management",
+      icon: <ParkingSquare size={20} />,
+    },
+    {
+      label: "ویرایش حساب کاربری",
+      to: "/dashboard/profile",
+      icon: <User size={20} />,
+    },
   ];
 
   if (role === "ADMIN") {
@@ -56,8 +77,8 @@ const PublicLayout = () => {
 
       {shouldShowNavbar && (
         <>
-          <DesktopNavBar showToggle={isDashboardPage} links={mainNavLinks} />
-          {isDashboardPage && <DesktopSideBar links={dashboardLinks} />}
+          <DesktopNavBar showToggle={shouldShowSidebar} links={mainNavLinks} />
+          {shouldShowSidebar && <DesktopSideBar links={dashboardLinks} />}
         </>
       )}
 
@@ -65,7 +86,7 @@ const PublicLayout = () => {
         <>
           <MobileNavBar />
           <MobileSideBar
-            isDashboardPage={isDashboardPage}
+            isDashboardPage={shouldShowSidebar}
             mainLinks={mainNavLinks}
             dashboardLinks={dashboardLinks}
           />
@@ -77,7 +98,7 @@ const PublicLayout = () => {
           min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out
           flex flex-col
           pt-0 pb-28 ${shouldShowNavbar ? "md:pt-16 md:pb-0" : "md:pt-0 md:pb-0"}
-          ${shouldShowNavbar && isDashboardPage && isExpanded ? "md:pr-64 pr-0" : "pr-0"}
+          ${shouldShowNavbar && shouldShowSidebar && isExpanded ? "md:pr-64 pr-0" : "pr-0"}
         `}
       >
         <div className="flex-grow ">
