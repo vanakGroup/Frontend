@@ -6,7 +6,7 @@ import { CustomLabel } from "@/components/Custom/CustomLabel";
 import { useFormik } from "formik";
 import { phoneValidationSchema } from "@/schemas/phoneLoginSchema";
 import { sendOTPService } from "@/services/authService";
-import { toast } from "sonner";
+import CustomToast from "@/components/Custom/CustomToast";
 import useUserStore from "@/store/userStore/userStore";
 export default function PhoneStep({
   phoneNumber,
@@ -28,7 +28,7 @@ export default function PhoneStep({
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
         await sendOTPService({ phone: values.phone.trim() });
-        toast.success("کد با موفقیت ارسال شد", {
+        CustomToast.success("کد با موفقیت ارسال شد", {
           description: `کد تایید به شماره ${values.phone.trim()} پیامک شد.`,
         });
 
@@ -48,7 +48,7 @@ export default function PhoneStep({
           case 401:
             errorMessage = "";
             setPhoneNumber(values.phone.trim());
-            toast.success("کد تایید قبلی منقضی نشده است", {
+            CustomToast.success("کد تایید قبلی منقضی نشده است", {
               description: "از کد تایید قبلی استفاده نمایید.",
             });
             handleSuccess();

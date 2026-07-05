@@ -20,7 +20,7 @@ import { verifyOTPService } from "@/services/authService";
 import { sendOTPService } from "@/services/authService";
 import useUserStore from "@/store/userStore/userStore";
 import { loginService } from "@/services/authService";
-import { toast } from "sonner";
+import CustomToast from "@/components/Custom/CustomToast";
 import { useNavigate } from "react-router-dom";
 
 const TIMER_START = 5;
@@ -126,7 +126,7 @@ export default function OTPStep({
   const handleResend = async () => {
     try {
       await sendOTPService({ phone: phoneNumber });
-      toast.success("کد مجدداً ارسال شد", {
+      CustomToast.success("کد مجدداً ارسال شد", {
         description: `یک کد تایید جدید به شماره ${phoneNumber} پیامک شد.`,
       });
 

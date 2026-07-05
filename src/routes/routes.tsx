@@ -9,7 +9,9 @@ import DashboardLayout from "@/pages/dashboard/DashboardLayout";
 import MyParking from "@/pages/dashboard/MyParking";
 import Management from "@/pages/dashboard/management/Management";
 import ParkingForm from "@/pages/dashboard/management/ParkingForm";
+import ParkingView from "@/pages/dashboard/management/ParkingView";
 import ParkingSlots from "@/pages/dashboard/management/ParkingSlots";
+import ParkingHistory from "@/pages/dashboard/management/ParkingHistory";
 import AboutUs from "@/pages/AboutUs";
 import ExploreParking from "@/pages/exploreParking";
 import Vehi from "@/pages/vehi";
@@ -54,7 +56,7 @@ export const router = createBrowserRouter([
         element: <ExploreParking />,
       },
       {
-        path: "/vehi",
+        path: "/vehicles",
         element: <Vehi />,
       },
       {
@@ -94,8 +96,16 @@ export const router = createBrowserRouter([
             element: <ParkingForm />,
           },
           {
+            path: "management/view/:id",
+            element: <ParkingView />,
+          },
+          {
             path: "management/slots/:id",
             element: <ParkingSlots />,
+          },
+          {
+            path: "management/history/:id",
+            element: <ParkingHistory />,
           },
           {
             path: "profile",

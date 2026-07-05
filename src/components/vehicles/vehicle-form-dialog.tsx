@@ -6,9 +6,13 @@ import * as yup from "yup";
 import { CustomDialog } from "@/components/Custom/CustomDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { CustomLabel } from "@/components/Custom/CustomLabel";
 import CustomInput from "@/components/Custom/CustomInput";
-import { Upload, Car, FileText } from "lucide-react";
+import { Upload, Car } from "lucide-react";
 import { createVehicle } from "./vehicle-service";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 const ENGLISH_TO_PERSIAN: Record<string, string> = {
   "0": "۰",
@@ -23,9 +27,6 @@ const ENGLISH_TO_PERSIAN: Record<string, string> = {
   "9": "۹",
 };
 
-const PERSIAN_DIGIT_RE = /[۰-۹]/;
-const PERSIAN_LETTER_RE = /[ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]/;
-
 function toPersianDigits(input: string): string {
   return input
     .split("")
@@ -33,53 +34,17 @@ function toPersianDigits(input: string): string {
     .join("");
 }
 
-function formatPlateInput(input: string): string {
-  const converted = toPersianDigits(input);
-  const stripped = converted.replace(
-    /[^\u06F0-\u06F9ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]/g,
+function keepDigits(input: string): string {
+  return toPersianDigits(input).replace(/[^\u06F0-\u06F9]/g, "");
+}
+
+function keepLetters(input: string): string {
+  return input.replace(
+    /[^\u0627\u0628\u067E\u062A\u062B\u062C\u0686\u062D\u062E\u062F\u0630\u0631\u0632\u0698\u0633\u0634\u0635\u0636\u0637\u0638\u0639\u063A\u0641\u0642\u06A9\u06AF\u0644\u0645\u0646\u0648\u0647\u06CC]/g,
     "",
   );
-
-  let result = "";
-  let si = 0;
-
-  while (result.length < 2 && si < stripped.length) {
-    if (PERSIAN_DIGIT_RE.test(stripped[si])) result += stripped[si];
-    si++;
-  }
-  if (result.length < 2) return result;
-
-  while (si < stripped.length) {
-    if (PERSIAN_LETTER_RE.test(stripped[si])) {
-      result += stripped[si];
-      si++;
-      break;
-    }
-    si++;
-  }
-  if (result.length < 3) return result;
-
-  while (result.length < 6 && si < stripped.length) {
-    if (PERSIAN_DIGIT_RE.test(stripped[si])) result += stripped[si];
-    si++;
-  }
-  if (result.length < 6) return result;
-
-  if (si < stripped.length) {
-    result += "|";
-  }
-
-  let lastD = 0;
-  while (lastD < 2 && si < stripped.length) {
-    if (PERSIAN_DIGIT_RE.test(stripped[si])) {
-      result += stripped[si];
-      lastD++;
-    }
-    si++;
-  }
-
-  return result;
 }
+
 
 const vehicleSchema = yup.object({
   license_plate: yup
@@ -87,12 +52,11 @@ const vehicleSchema = yup.object({
     .required("پلاک الزامی است")
     .test(
       "plate-format",
-      "فرمت پلاک نامعتبر است (۲ رقم + ۱ حرف + ۳ رقم | ۲ رقم)",
+      "فرمت پلاک نامعتبر است (۲ رقم + ۱ حرف + ۳ رقم + ۲ رقم)",
       (value) => {
         if (!value) return false;
-        const stripped = value.replace("|", "");
         return /^[۰-۹]{2}[ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی][۰-۹]{5}$/.test(
-          stripped,
+          value,
         );
       },
     ),
@@ -131,6 +95,7 @@ export function VehicleFormDialog({
   onSave,
 }: VehicleFormDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const plateRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [backendError, setBackendError] = useState<string | null>(null);
 
@@ -143,7 +108,7 @@ export function VehicleFormDialog({
     validationSchema: vehicleSchema,
     onSubmit: async (values) => {
       try {
-        const plateForBackend = values.license_plate.replace("|", "");
+        const plateForBackend = values.license_plate;
         await createVehicle({
           license_plate: plateForBackend,
           car_model: values.car_model,
@@ -174,13 +139,53 @@ export function VehicleFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const handlePlateChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const formatted = formatPlateInput(e.target.value);
-      formik.setFieldValue("license_plate", formatted);
+  const setPlatePart = useCallback(
+    (part: number, value: string) => {
+      const current = formik.values.license_plate;
+      const segments = [
+        current.slice(0, 2),
+        current.slice(2, 3),
+        current.slice(3, 6),
+        current.slice(6, 8),
+      ];
+      segments[part] = value;
+      const next = segments.join("");
+      formik.setFieldValue("license_plate", next);
       formik.setFieldTouched("license_plate", true);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    [formik.values.license_plate],
+  );
+
+  const handlePlatePartChange = useCallback(
+    (part: number, maxLen: number, type: "digit" | "letter") =>
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const raw = toPersianDigits(e.target.value);
+        const filtered =
+          type === "digit"
+            ? keepDigits(raw)
+            : keepLetters(raw).slice(-1);
+        const value = filtered.slice(0, maxLen);
+        setPlatePart(part, value);
+        if (value.length === maxLen) {
+          plateRefs.current[Math.min(part + 1, 3)]?.focus();
+        }
+      },
+    [setPlatePart],
+  );
+
+  const handlePlatePartKeyDown = useCallback(
+    (part: number) =>
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (
+          e.key === "Backspace" &&
+          !e.currentTarget.value &&
+          part > 0
+        ) {
+          e.preventDefault();
+          plateRefs.current[part - 1]?.focus();
+        }
+      },
     [],
   );
 
@@ -199,6 +204,8 @@ export function VehicleFormDialog({
     [],
   );
 
+  const isMobile = useIsMobile();
+
   return (
     <CustomDialog
       open={open}
@@ -207,8 +214,8 @@ export function VehicleFormDialog({
       description="برای احراز هویت، اطلاعات ماشین و عکس کارت را وارد کنید"
       showCloseButton
     >
-      <form onSubmit={formik.handleSubmit} className="space-y-5" dir="rtl">
-        <Card className="border border-border/80 border-primary bg-card/60 backdrop-blur-sm p-6 shadow-lg space-y-5 rounded-2xl">
+      <form onSubmit={formik.handleSubmit} className={cn("space-y-5")} dir="rtl">
+        <Card className="border border-border/80 border-primary bg-card/60 backdrop-blur-sm p-4 sm:p-6 shadow-lg space-y-5 rounded-2xl">
           <div className="space-y-2">
             <CustomInput
               id="registration_card"
@@ -254,29 +261,95 @@ export function VehicleFormDialog({
             )}
           </div>
           <div>
-            <CustomInput
-              id="license_plate"
-              label="شماره پلاک"
-              error={
-                formik.touched.license_plate
-                  ? formik.errors.license_plate
-                  : undefined
-              }
-              inputSize="lg"
-              placeholder="۱۲ب۳۴۵|۶۷"
-              value={formik.values.license_plate}
-              onChange={handlePlateChange}
-              onBlur={formik.handleBlur}
-              dir="rtl"
-              icon={<FileText className="h-4 w-4" />}
-              iconPosition="left"
-            >
-              <CustomInput.Label required>شماره پلاک</CustomInput.Label>
-              <CustomInput.Input />
-              <CustomInput.Error />
-            </CustomInput>
+            <div className="flex flex-col w-full space-y-1.5" dir="rtl">
+              <CustomLabel
+                htmlFor="plate-part-0"
+                required
+                className="block text-right"
+              >
+                شماره پلاک
+              </CustomLabel>
+              <div className="flex items-center justify-center gap-2" dir="ltr">
+                <Input
+                  ref={(el) => { plateRefs.current[0] = el; }}
+                  id="plate-part-0"
+                  inputMode="numeric"
+                  placeholder="۱۲"
+                  value={formik.values.license_plate.slice(0, 2)}
+                  onChange={handlePlatePartChange(0, 2, "digit")}
+                  onKeyDown={handlePlatePartKeyDown(0)}
+                  onBlur={formik.handleBlur}
+                  maxLength={2}
+                  dir="rtl"
+                  className={cn(
+                    "w-14 h-12 text-center text-lg font-semibold rounded-xl border bg-background outline-none transition-all",
+                    formik.touched.license_plate && formik.errors.license_plate
+                      ? "border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/30"
+                      : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  )}
+                />
+                <Input
+                  ref={(el) => { plateRefs.current[1] = el; }}
+                  id="plate-part-1"
+                  placeholder="ب"
+                  value={formik.values.license_plate.slice(2, 3)}
+                  onChange={handlePlatePartChange(1, 1, "letter")}
+                  onKeyDown={handlePlatePartKeyDown(1)}
+                  onBlur={formik.handleBlur}
+                  maxLength={1}
+                  dir="rtl"
+                  className={cn(
+                    "w-12 h-12 text-center text-lg font-semibold rounded-xl border bg-background outline-none transition-all",
+                    formik.touched.license_plate && formik.errors.license_plate
+                      ? "border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/30"
+                      : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  )}
+                />
+                <Input
+                  ref={(el) => { plateRefs.current[2] = el; }}
+                  id="plate-part-2"
+                  inputMode="numeric"
+                  placeholder="۳۴۵"
+                  value={formik.values.license_plate.slice(3, 6)}
+                  onChange={handlePlatePartChange(2, 3, "digit")}
+                  onKeyDown={handlePlatePartKeyDown(2)}
+                  onBlur={formik.handleBlur}
+                  maxLength={3}
+                  dir="rtl"
+                  className={cn(
+                    "w-16 h-12 text-center text-lg font-semibold rounded-xl border bg-background outline-none transition-all",
+                    formik.touched.license_plate && formik.errors.license_plate
+                      ? "border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/30"
+                      : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  )}
+                />
+                <Input
+                  ref={(el) => { plateRefs.current[3] = el; }}
+                  id="plate-part-3"
+                  inputMode="numeric"
+                  placeholder="۶۷"
+                  value={formik.values.license_plate.slice(6, 8)}
+                  onChange={handlePlatePartChange(3, 2, "digit")}
+                  onKeyDown={handlePlatePartKeyDown(3)}
+                  onBlur={formik.handleBlur}
+                  maxLength={2}
+                  dir="rtl"
+                  className={cn(
+                    "w-14 h-12 text-center text-lg font-semibold rounded-xl border bg-background outline-none transition-all",
+                    formik.touched.license_plate && formik.errors.license_plate
+                      ? "border-destructive focus:border-destructive focus:ring-2 focus:ring-destructive/30"
+                      : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  )}
+                />
+              </div>
+              {formik.touched.license_plate && formik.errors.license_plate && (
+                <p className="text-sm text-destructive text-right">
+                  {formik.errors.license_plate}
+                </p>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground mt-1 text-right">
-              فرمت: ۲ رقم فارسی + ۱ حرف + ۳ رقم | ۲ رقم
+              فرمت: ۲ رقم فارسی + ۱ حرف + ۳ رقم + ۲ رقم
             </p>
           </div>
 
@@ -305,19 +378,19 @@ export function VehicleFormDialog({
           <p className="text-sm text-destructive text-center">{backendError}</p>
         )}
 
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+            className="border-border text-muted-foreground hover:bg-accent hover:text-foreground w-full sm:w-auto"
           >
             انصراف
           </Button>
           <Button
             type="submit"
             disabled={formik.isSubmitting}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors w-full sm:w-auto"
           >
             {formik.isSubmitting ? "در حال ثبت..." : "ثبت و احراز"}
           </Button>

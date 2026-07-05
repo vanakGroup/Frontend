@@ -64,19 +64,21 @@ export function VehiclesList() {
   };
 
   return (
-    <div className="space-y-4 max-w-[60vw] mx-auto">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
-            <Car className="h-5 w-5" />
+    <div className="w-full max-w-3xl mx-auto px-2 sm:px-4 space-y-4">
+      <div className="flex justify-between items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="p-2 sm:p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
+            <Car className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
-          <Label className="text-lg font-bold"> وسایل نقلیه من</Label>
+          <Label className="text-base sm:text-lg font-bold truncate">
+            {" "}وسایل نقلیه من
+          </Label>
         </div>
         <Button
           onClick={() => setFormDialogOpen(true)}
-          className="bg-primary hover:bg-secondary text-white transition-colors gap-2"
+          className="bg-primary hover:bg-secondary text-white transition-colors gap-2 shrink-0"
         >
-          <Plus size={18} /> افزودن وسیله
+          <Plus size={18} /> <span className="hidden sm:inline">افزودن وسیله</span>
         </Button>
       </div>
 

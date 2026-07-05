@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Plus, X, Trash2 } from "lucide-react";
@@ -73,6 +73,101 @@ const amenityList = [
   { key: "security", label: "نگهبان" },
   { key: "covered", label: "مسقف" },
 ];
+
+// --- Mock existing parking data (for edit mode) ---
+const mockParkingById: Record<
+  number,
+  {
+    name: string;
+    address: string;
+    phone: string;
+    capacity: string;
+    pricePerHour: string;
+    description: string;
+    province: string;
+    postalCode: string;
+    latitude: string;
+    longitude: string;
+    amenities: Amenities;
+    images: string[];
+    documents: string[];
+    daySlots: DaySlot[];
+  }
+> = {
+  1: {
+    name: "پارکینگ اول",
+    address: "تهران / میدان ونک",
+    phone: "021-88112233",
+    capacity: "50",
+    pricePerHour: "15000",
+    description: "پارکینگ سرپوشیده با امنیت بالا در نزدیکی میدان ونک",
+    province: "تهران",
+    postalCode: "1958765432",
+    latitude: "35.7575",
+    longitude: "51.4100",
+    amenities: { cctv: true, security: true, covered: false },
+    images: [
+      "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=200",
+    ],
+    documents: [
+      "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=200",
+    ],
+    daySlots: [
+      {
+        id: 1,
+        date: "",
+        dayName: "شنبه",
+        selectedHours: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+      },
+    ],
+  },
+  2: {
+    name: "پارکینگ دوم",
+    address: "تهران / پارک وی",
+    phone: "021-22446688",
+    capacity: "30",
+    pricePerHour: "12000",
+    description: "پارکینگ مسقف با دوربین مداربسته در پارک وی",
+    province: "تهران",
+    postalCode: "1966778899",
+    latitude: "35.7720",
+    longitude: "51.4180",
+    amenities: { cctv: true, security: false, covered: true },
+    images: [],
+    documents: [],
+    daySlots: [
+      {
+        id: 1,
+        date: "",
+        dayName: "یکشنبه",
+        selectedHours: [9, 10, 11, 12, 13, 14],
+      },
+    ],
+  },
+  3: {
+    name: "پارکینگ سوم",
+    address: "تهران / میدان رسالت",
+    phone: "021-77889900",
+    capacity: "20",
+    pricePerHour: "10000",
+    description: "پارکینگ روباز در میدان رسالت",
+    province: "تهران",
+    postalCode: "1655443322",
+    latitude: "35.7350",
+    longitude: "51.4890",
+    amenities: { cctv: false, security: false, covered: false },
+    images: [],
+    documents: [],
+    daySlots: [
+      {
+        id: 1,
+        date: "",
+        dayName: "دوشنبه",
+        selectedHours: [7, 8, 9, 10],
+      },
+    ],
+  },
+};
 
 // --- Types ---
 interface TimeFrame {
@@ -184,6 +279,42 @@ export default function ParkingForm() {
   const [daySlots, setDaySlots] = useState<DaySlot[]>([
     { id: 1, date: "", dayName: "", selectedHours: [] },
   ]);
+
+  // --- Pre-fill form with existing parking data when editing ---
+  useEffect(() => {
+    if (!isEdit) return;
+    const existing = mockParkingById[Number(id)];
+    if (!existing) return;
+    setForm({
+      name: existing.name,
+      address: existing.address,
+      phone: existing.phone,
+      capacity: existing.capacity,
+      pricePerHour: existing.pricePerHour,
+      description: existing.description,
+      province: existing.province,
+      postalCode: existing.postalCode,
+      latitude: existing.latitude,
+      longitude: existing.longitude,
+    });
+    setAmenities(existing.amenities);
+    setProvinceSearch(existing.province);
+    if (existing.latitude && existing.longitude) {
+      setMarkerPos([Number(existing.latitude), Number(existing.longitude)]);
+    }
+    setImages(existing.images);
+    setDocuments(
+      existing.documents.map((url) => ({
+        name: url.split("/").pop() ?? "document",
+        url,
+      })),
+    );
+    setDaySlots(
+      existing.daySlots.length
+        ? existing.daySlots
+        : [{ id: 1, date: "", dayName: "", selectedHours: [] }],
+    );
+  }, [id, isEdit]);
 
   // --- Handlers ---
   const handleChange = (

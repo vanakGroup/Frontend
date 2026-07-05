@@ -1,6 +1,6 @@
 import { deleteData, getData, postImageData } from "@/services/services";
 import type { Vehicle } from "@/types/vehicleTypes";
-import { toast } from "sonner";
+import CustomToast from "@/components/Custom/CustomToast";
 
 export interface CreateVehiclePayload {
   license_plate: string;
@@ -40,7 +40,7 @@ export const getVehicles = async (): Promise<Vehicle[]> => {
       car_model: vehicle.car_model,
     }));
   } catch (error) {
-    toast.error("دریافت لیست وسایل نقلیه ناموفق بود", {
+    CustomToast.error("دریافت لیست وسایل نقلیه ناموفق بود", {
       description: "لطفاً دوباره تلاش کنید.",
     });
     throw error;
@@ -60,7 +60,7 @@ export const getVehicleById = async (id: string): Promise<Vehicle> => {
       registration_card: response.data.registration_card_url,
     };
   } catch (error) {
-    toast.error("دریافت اطلاعات وسیله نقلیه ناموفق بود", {
+    CustomToast.error("دریافت اطلاعات وسیله نقلیه ناموفق بود", {
       description: "لطفاً دوباره تلاش کنید.",
     });
     throw error;
@@ -73,13 +73,13 @@ export const deleteVehicle = async (id: string) => {
       endPoint: `/v1/vehicle/${id}`,
     });
 
-    toast.success("وسیله نقلیه با موفقیت حذف شد", {
+    CustomToast.success("وسیله نقلیه با موفقیت حذف شد", {
       description: response?.message ?? "",
     });
 
     return response;
   } catch (error) {
-    toast.error("حذف وسیله نقلیه ناموفق بود", {
+    CustomToast.error("حذف وسیله نقلیه ناموفق بود", {
       description: "لطفاً دوباره تلاش کنید.",
     });
     throw error;
@@ -102,13 +102,13 @@ export const createVehicle = async ({
       data: formData,
     });
 
-    toast.success("وسیله نقلیه با موفقیت ثبت شد", {
+    CustomToast.success("وسیله نقلیه با موفقیت ثبت شد", {
       description: response?.message ?? "",
     });
 
     return response;
   } catch (error) {
-    toast.error("ثبت وسیله نقلیه ناموفق بود", {
+    CustomToast.error("ثبت وسیله نقلیه ناموفق بود", {
       description: "لطفاً دوباره تلاش کنید.",
     });
     throw error;
