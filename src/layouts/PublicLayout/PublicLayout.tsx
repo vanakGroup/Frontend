@@ -11,14 +11,16 @@ import {
   Info,
   Phone,
   ShieldUser,
+  SquareParking,
+  Users,
   ParkingSquare,
   User,
 } from "lucide-react";
 import Footer from "@/components/Custom/Footer";
-import useUserStore from "@/store/userStore/userStore";
 
 const PublicLayout = () => {
-  const { isExpanded } = useSidebarStore();
+  // 1. Pull isAdminMode from the store instead of checking the URL
+  const { isExpanded, isAdminMode } = useSidebarStore();
   const location = useLocation();
 
   const routesWithoutNavbar = ["/login"];
@@ -29,10 +31,10 @@ const PublicLayout = () => {
     location.pathname.startsWith(route),
   );
 
-  const role = useUserStore((state) => state.role);
-  const accessToken = useUserStore((state) => state.accessToken);
-  const isLoggedIn = !!accessToken;
-  const shouldShowSidebar = isLoggedIn;
+  // const role = useUserStore((state) => state.role);
+  // const accessToken = useUserStore((state) => state.accessToken);
+  // const isLoggedIn = !!accessToken;
+  const shouldShowSidebar = isDashboardPage;
 
   const mainNavLinks = [
     { label: "صفحه اصلی", to: "/", icon: <Home size={18} /> },
@@ -41,7 +43,7 @@ const PublicLayout = () => {
     { label: "مشاهده پارکینگ ها", to: "/parking" },
   ];
 
-  const dashboardLinks = [
+  const userDashboardLinks = [
     { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
     {
       label: "پارکینگ من",
@@ -55,13 +57,20 @@ const PublicLayout = () => {
     },
   ];
 
-  if (role === "ADMIN") {
-    dashboardLinks.unshift({
-      label: "پنل مدیریت",
-      to: "/admin",
-      icon: <ShieldUser size={20} />,
-    });
-  }
+  const adminDashboardLinks = [
+    { label: "داشبورد مدیریت", to: "/admin", icon: <ShieldUser size={20} /> },
+    {
+      label: "مدیریت پارکینگ ونک",
+      to: "/admin/parking",
+      icon: <SquareParking size={20} />,
+    },
+    { label: "مدیریت کاربران", to: "/admin/users", icon: <Users size={20} /> },
+  ];
+
+  // 2. Select links based on the toggle state, not the URL
+  const dashboardLinks = isAdminMode
+    ? [...adminDashboardLinks]
+    : [...userDashboardLinks];
 
   const shouldShowFooter = shouldShowNavbar && !isDashboardPage;
 

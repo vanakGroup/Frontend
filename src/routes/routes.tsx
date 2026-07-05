@@ -16,8 +16,9 @@ import AboutUs from "@/pages/AboutUs";
 import ExploreParking from "@/pages/exploreParking";
 import Vehi from "@/pages/vehi";
 import ContactUs from "@/pages/contactUs";
-import AdminDashboard from "@/pages/AdminDashboard";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 import Wallet from "@/pages/Wallet";
+import ParkingReg from "@/pages/admin/ParkingReg";
 
 import UserProfile from "@/pages/dashboard/UserProfile";
 import ParkingProfile from "@/pages/ParkingProfile";
@@ -65,7 +66,16 @@ export const router = createBrowserRouter([
       },
       {
         path: "/admin",
-        element: <AdminDashboard />,
+        children: [
+          {
+            index: true,
+            element: <AdminDashboard />,
+          },
+          {
+            path: "parking-registration",
+            element: <ParkingReg />,
+          },
+        ],
       },
       {
         path: "/wallet",

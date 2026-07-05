@@ -8,8 +8,10 @@ import {
   MapPin,
   Banknote,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   return (
     <div dir="rtl" className="w-full p-4 md:p-6 lg:p-8 pb-12 space-y-6">
       {/* Header Section */}
@@ -80,7 +82,11 @@ export default function AdminDashboard() {
                 <span className="font-medium text-foreground">۳۱۰</span>
               </div>
             </div>
-            <Button variant="outline" className="w-full mt-4">
+            <Button
+              variant="outline"
+              className="w-full mt-4"
+              onClick={() => navigate("/admin/parking-registration")}
+            >
               مشاهده
             </Button>
           </CardContent>

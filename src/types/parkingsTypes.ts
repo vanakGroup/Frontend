@@ -16,7 +16,7 @@ export interface ParkingState {
   parkings: Parking[];
   searchQuery: string;
   maxPrice: number;
-  minScore: number;
+  minScore: number; //delete this
   currentPage: number;
   itemsPerPage: number;
   totalPages: number;
