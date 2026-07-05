@@ -60,7 +60,7 @@ export function VehicleDetailsDialog({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 text-sm bg-white p-4 rounded-lg border border-primary">
+        <div className="grid grid-cols-[auto_1fr] sm:grid-cols-2 gap-2 sm:gap-3 text-sm bg-white p-3 sm:p-4 rounded-lg border border-primary">
           <div className="font-medium text-gray-800 text-right">پلاک:</div>
           <div className="text-gray-800 text-right font-mono tracking-wider">
             {displayVehicle.license_plate}
@@ -76,7 +76,7 @@ export function VehicleDetailsDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-gray-300 text-gray-600 hover:bg-gray-50"
+            className="border-gray-300 text-gray-600 hover:bg-gray-50 w-full sm:w-auto"
           >
             بستن
           </Button>

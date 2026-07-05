@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Clock, ArrowRight, MapPin } from "lucide-react";
+import { Plus, Pencil, Trash2, Clock, ArrowRight, MapPin, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -45,7 +45,10 @@ export default function Management() {
         {mockParkings.map((parking) => (
           <div
             key={parking.id}
-            className="bg-card border border-border rounded-2xl p-4"
+            className="bg-card border border-border rounded-2xl p-4 cursor-pointer hover:border-primary/40 transition-colors"
+            onClick={() =>
+              navigate(`/dashboard/management/view/${parking.id}`)
+            }
           >
             {/* Desktop layout */}
             <div
@@ -53,7 +56,10 @@ export default function Management() {
               dir="ltr"
             >
               {/* Buttons  */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div
+                className="flex items-center gap-2 shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Button
                   variant="destructive"
                   size="sm"
@@ -82,6 +88,16 @@ export default function Management() {
                   className="flex items-center gap-1.5"
                 >
                   <Clock size={14} /> زمان‌بندی
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/dashboard/management/history/${parking.id}`)
+                  }
+                  className="flex items-center gap-1.5"
+                >
+                  <BarChart3 size={14} /> تاریخچه و تحلیل
                 </Button>
               </div>
 
@@ -117,14 +133,17 @@ export default function Management() {
               {/* Divider */}
               <div className="border-t border-border" />
 
-              {/* Buttons on bottom — equal width */}
-              <div className="flex items-center gap-2">
+              {/* Buttons on bottom — 2 per row */}
+              <div
+                className="grid grid-cols-2 gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Button
                   variant="destructive"
                   size="sm"
                   disabled={deletingId === parking.id}
                   onClick={() => handleDelete(parking.id)}
-                  className="flex-1 flex items-center justify-center gap-1.5"
+                  className="flex items-center justify-center gap-1.5"
                 >
                   <Trash2 size={14} /> حذف
                 </Button>
@@ -134,7 +153,7 @@ export default function Management() {
                   onClick={() =>
                     navigate(`/dashboard/management/edit/${parking.id}`)
                   }
-                  className="flex-1 flex items-center justify-center gap-1.5"
+                  className="flex items-center justify-center gap-1.5"
                 >
                   <Pencil size={14} /> ویرایش
                 </Button>
@@ -144,9 +163,19 @@ export default function Management() {
                   onClick={() =>
                     navigate(`/dashboard/management/slots/${parking.id}`)
                   }
-                  className="flex-1 flex items-center justify-center gap-1.5"
+                  className="flex items-center justify-center gap-1.5"
                 >
                   <Clock size={14} /> زمان‌بندی
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/dashboard/management/history/${parking.id}`)
+                  }
+                  className="flex items-center justify-center gap-1.5"
+                >
+                  <BarChart3 size={14} /> تحلیل
                 </Button>
               </div>
             </div>

@@ -164,5 +164,16 @@
   body {
     @apply font-sans bg-background text-foreground;
   }
+  button:enabled,
+  [role="button"],
+  summary,
+  label[for],
+  a[href] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  [role="button"][data-disabled] {
+    cursor: not-allowed;
+  }
 }
-
