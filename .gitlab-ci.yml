@@ -7,7 +7,7 @@ build_frontend:
   services:
     - docker:24.0.5-dind
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.local.hamgit.ir
   script:
-    - docker build -f docker/Dockerfile -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker build -f docker/Dockerfile -t registry.local.hamgit.ir/$CI_PROJECT_PATH:$CI_COMMIT_REF_SLUG .
+    - docker push registry.local.hamgit.ir/$CI_PROJECT_PATH:$CI_COMMIT_REF_SLUG
