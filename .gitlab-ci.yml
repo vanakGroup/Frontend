@@ -2,15 +2,19 @@ stages:
   - build
 
 variables:
-  DOCKER_HOST: tcp://docker:2375
+  # تعریف دقیق هاست داکر به صورت محلی برای سازگاری با رانرهای قدیمی
+  DOCKER_HOST: "tcp://localhost:2375"
   DOCKER_TLS_CERTDIR: ""
 
 build_frontend:
   stage: build
   image: docker:24.0.5
   services:
-    - docker:24.0.5-dind
+    - name: docker:24.0.5-dind
+      alias: localhost
   before_script:
+    # یک مکث کوتاه برای اینکه مطمئن شویم سرویس داکر در پس‌زمینه کاملاً لود شده است
+    - sleep 5
     - echo '3EU8RIZgmewsImOkA1!' | docker login -u hossein-rasipour --password-stdin registry.hamdocker.ir
   script:
     - docker build -f docker/Dockerfile -t registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG .
