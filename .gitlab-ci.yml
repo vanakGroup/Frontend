@@ -1,20 +1,22 @@
 stages:
   - build-and-push
 
-build_and_push_to_hamdocker:
+build_with_kaniko:
   stage: build-and-push
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  
   variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_HOST: "tcp://localhost:2375"
     HAMDOCKER_REGISTRY: "registry.hamdocker.ir"
     HAMDOCKER_IMAGE: "registry.hamdocker.ir/hossein-rasipour/vanak-frontend"
 
-  before_script:
-    - echo "$HAMDOCKER_PASSWORD" | docker login $HAMDOCKER_REGISTRY -u "$HAMDOCKER_USER" --password-stdin
-
   script:
-    - docker build -f docker/Dockerfile -t $HAMDOCKER_IMAGE:latest .
-    - docker push $HAMDOCKER_IMAGE:latest
+    - mkdir -p /kaniko/.docker
+    
+    - echo "{\"auths\":{\"$HAMDOCKER_REGISTRY\":{\"auth\":\"$(echo -n ${HAMDOCKER_USER}:${HAMDOCKER_PASSWORD} | base64)\"}}}" > /kaniko/.docker/config.json
+    
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/docker/Dockerfile"
+      --destination "${HAMDOCKER_IMAGE}:latest"
