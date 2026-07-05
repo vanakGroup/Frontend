@@ -2,7 +2,6 @@ stages:
   - build
 
 variables:
-  # لغو تعریف آدرس شبکه داکر
   DOCKER_HOST: ""
   DOCKER_TLS_CERTDIR: ""
 
@@ -11,13 +10,12 @@ build_frontend:
   image: docker:24.0.5
   services:
     - name: docker:24.0.5-dind
-      # این دستور به داکر می‌گوید دیمن را بدون TLS و روی سوکت سنتی بالا بیاورد
       command: ["--tls=false"]
   before_script:
     - sleep 5
-    - echo '3EU8RIZgmewsImOkA1!' | docker login -u hossein-rasipour --password-stdin registry.hamdocker.ir
+    # استفاده از سوکت محلی برای دستور لاگین
+    - echo '3EU8RIZgmewsImOkA1!' | docker -H unix:///var/run/docker.sock login -u hossein-rasipour --password-stdin registry.hamdocker.ir
   script:
-    # بیلد و تگ‌گذاری با اتصال مستقیم به سوکت محلی
-    - docker build -H unix:///var/run/docker.sock -f docker/Dockerfile -t registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG .
-    # پوش کردن به هم‌داکر
-    - docker push registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG
+    # اصلاح جایگاه پرچم -H بلافاصله بعد از دستور docker
+    - docker -H unix:///var/run/docker.sock build -f docker/Dockerfile -t registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG .
+    - docker -H unix:///var/run/docker.sock push registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG
