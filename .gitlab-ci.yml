@@ -1,17 +1,19 @@
 stages:
   - build-and-push
 
-build_and_push_to_gitlab:
+build_and_push_to_hamdocker:
   stage: build-and-push
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
   variables:
     DOCKER_TLS_CERTDIR: ""
+    HAMDOCKER_REGISTRY: "registry.hamdocker.ir"
+    HAMDOCKER_IMAGE: "registry.hamdocker.ir/hossein-rasipour/vanak-frontend"
 
   before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
+    - echo "$HAMDOCKER_PASSWORD" | docker login $HAMDOCKER_REGISTRY -u "$HAMDOCKER_USER" --password-stdin
 
   script:
-    - docker build -f docker/Dockerfile -t $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker build -f docker/Dockerfile -t $HAMDOCKER_IMAGE:latest .
+    - docker push $HAMDOCKER_IMAGE:latest
