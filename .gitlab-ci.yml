@@ -1,6 +1,10 @@
 stages:
   - build
 
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+
 build_frontend:
   stage: build
   image: docker:24.0.5
