@@ -1,13 +1,8 @@
 stages:
-  - build
+  - check
 
-build_frontend:
-  stage: build
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD registry.local.hamgit.ir
+debug_job:
+  stage: check
   script:
-    - docker build -f docker/Dockerfile -t registry.local.hamgit.ir/$CI_PROJECT_PATH:$CI_COMMIT_REF_SLUG .
-    - docker push registry.local.hamgit.ir/$CI_PROJECT_PATH:$CI_COMMIT_REF_SLUG
+    - echo "Registry Address is -> $CI_REGISTRY"
+    - echo "Registry Image Name is -> $CI_REGISTRY_IMAGE"
