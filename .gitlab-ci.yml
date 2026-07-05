@@ -7,7 +7,7 @@ build_and_push_to_hamdocker:
   services:
     - docker:24.0.5-dind
   variables:
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_TLS_CERTDIR: "/certs"
     HAMDOCKER_REGISTRY: "registry.hamdocker.ir"
     HAMDOCKER_IMAGE: "registry.hamdocker.ir/hossein-rasipour/vanak-frontend"
 
