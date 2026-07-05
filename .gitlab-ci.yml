@@ -7,7 +7,7 @@ build_frontend:
   services:
     - docker:24.0.5-dind
   before_script:
-    - echo "!3EU8RIZgmewsImOkA1" | docker login -u "hossein-rasipour" --password-stdin registry.hamdocker.ir
+    - echo '!3EU8RIZgmewsImOkA1' | docker login -u hossein-rasipour --password-stdin registry.hamdocker.ir
   script:
     - docker build -f docker/Dockerfile -t registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG .
     - docker push registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG
