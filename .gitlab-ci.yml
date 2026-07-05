@@ -2,8 +2,8 @@ stages:
   - build
 
 variables:
-  # تعریف دقیق هاست داکر به صورت محلی برای سازگاری با رانرهای قدیمی
-  DOCKER_HOST: "tcp://localhost:2375"
+  # لغو تعریف آدرس شبکه داکر
+  DOCKER_HOST: ""
   DOCKER_TLS_CERTDIR: ""
 
 build_frontend:
@@ -11,11 +11,13 @@ build_frontend:
   image: docker:24.0.5
   services:
     - name: docker:24.0.5-dind
-      alias: localhost
+      # این دستور به داکر می‌گوید دیمن را بدون TLS و روی سوکت سنتی بالا بیاورد
+      command: ["--tls=false"]
   before_script:
-    # یک مکث کوتاه برای اینکه مطمئن شویم سرویس داکر در پس‌زمینه کاملاً لود شده است
     - sleep 5
     - echo '3EU8RIZgmewsImOkA1!' | docker login -u hossein-rasipour --password-stdin registry.hamdocker.ir
   script:
-    - docker build -f docker/Dockerfile -t registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG .
+    # بیلد و تگ‌گذاری با اتصال مستقیم به سوکت محلی
+    - docker build -H unix:///var/run/docker.sock -f docker/Dockerfile -t registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG .
+    # پوش کردن به هم‌داکر
     - docker push registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG
