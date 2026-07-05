@@ -1,21 +1,17 @@
 stages:
-  - build
+  - build-and-push
 
-variables:
-  DOCKER_HOST: ""
-  DOCKER_TLS_CERTDIR: ""
-
-build_frontend:
-  stage: build
+build_and_push_to_gitlab:
+  stage: build-and-push
   image: docker:24.0.5
   services:
-    - name: docker:24.0.5-dind
-      command: ["--tls=false"]
+    - docker:24.0.5-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+
   before_script:
-    - sleep 5
-    # استفاده از سوکت محلی برای دستور لاگین
-    - echo '3EU8RIZgmewsImOkA1!' | docker -H unix:///var/run/docker.sock login -u hossein-rasipour --password-stdin registry.hamdocker.ir
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
+
   script:
-    # اصلاح جایگاه پرچم -H بلافاصله بعد از دستور docker
-    - docker -H unix:///var/run/docker.sock build -f docker/Dockerfile -t registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG .
-    - docker -H unix:///var/run/docker.sock push registry.hamdocker.ir/hossein-rasipour/vanak-frontend:$CI_COMMIT_REF_SLUG
+    - docker build -f docker/Dockerfile -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:latest
