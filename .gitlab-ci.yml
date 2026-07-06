@@ -6,8 +6,9 @@ build_and_push_to_hamdocker:
   stage: build-and-push
   tags:
     - vps-runner
-  #rules:
-  #  - if: '$CI_COMMIT_BRANCH == "main"'
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_MESSAGE =~ /^\[deploy\]/'
   variables:
     HAMDOCKER_REGISTRY: "registry.hamdocker.ir"
     HAMDOCKER_IMAGE: "registry.hamdocker.ir/hossein-rasipour/vanak-frontend"
@@ -22,15 +23,15 @@ deploy_to_vps:
   stage: deploy
   tags:
     - vps-runner
-  #rules:
-    #- if: '$CI_COMMIT_BRANCH == "main"'
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_MESSAGE =~ /^\[deploy\]/'
   variables:
     HAMDOCKER_REGISTRY: "registry.hamdocker.ir"
     HAMDOCKER_IMAGE: "registry.hamdocker.ir/hossein-rasipour/vanak-frontend"
   script:
     - echo "$HAMDOCKER_PASSWORD" | docker login $HAMDOCKER_REGISTRY -u "$HAMDOCKER_USER" --password-stdin
     - docker pull $HAMDOCKER_IMAGE:latest
-    
     - docker rm -f vanak-frontend-container || true
     - docker run -d --name vanak-frontend-container -p 80:80 --restart always $HAMDOCKER_IMAGE:latest
     - docker image prune -f
