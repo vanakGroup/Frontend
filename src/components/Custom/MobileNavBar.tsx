@@ -4,7 +4,8 @@ import { NavLink } from "react-router-dom";
 import { Home, Car } from "lucide-react";
 
 export const MobileNavBar = () => {
-  const { toggleSidebar } = useSidebarStore();
+  const { toggleSidebar, isExpanded } = useSidebarStore();
+  if (isExpanded) return null;
 
   return (
     <div
