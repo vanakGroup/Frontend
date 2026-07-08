@@ -10,7 +10,6 @@ interface SideBarProps {
 }
 
 export const SideBar = ({ children }: SideBarProps) => {
-  // Bring in setAdminMode instead of toggleAdminMode
   const { isExpanded, collapseSidebar, isAdminMode, setAdminMode } =
     useSidebarStore();
 
@@ -18,14 +17,12 @@ export const SideBar = ({ children }: SideBarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // The URL drives the state. Whenever the URL changes, we force the state to match.
   useEffect(() => {
     const isCurrentlyAdminRoute = location.pathname.startsWith("/admin");
     setAdminMode(isCurrentlyAdminRoute);
   }, [location.pathname, setAdminMode]);
 
   const handleToggleMode = () => {
-    // Just navigate! The useEffect above will catch the URL change and update the state automatically.
     if (isAdminMode) {
       navigate("/dashboard");
     } else {
@@ -52,14 +49,25 @@ export const SideBar = ({ children }: SideBarProps) => {
           bg-background border-l border-border shadow-xl
           transition-transform duration-300 ease-in-out
           flex flex-col overflow-y-auto
-          w-full md:w-64 pt-20 pb-4 
+          w-full md:w-64 pt-0 md:pt-20 pb-4 
           ${isExpanded ? "translate-x-0" : "translate-x-full"}
         `}
         dir="rtl"
       >
+        {/* Mobile Close Button Header */}
+        <div className="flex items-center justify-end p-4 md:hidden">
+          <button
+            onClick={collapseSidebar}
+            className="p-2 text-muted-foreground hover:bg-secondary hover:text-foreground rounded-full transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
 
-        <div className="flex flex-col flex-1 px-3 md:mt-0 mt-2">{children}</div>
+        {/* Dynamic Links */}
+        <div className="flex flex-col flex-1 px-3 md:mt-0">{children}</div>
 
+        {/* Toggle Panel Button */}
         {role === "ADMIN" && (
           <div className="mt-auto px-3 pt-4 border-t border-border">
             <Button

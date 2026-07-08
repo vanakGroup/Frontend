@@ -15,18 +15,26 @@ import {
   Users,
   ParkingSquare,
   User,
+  Car,
+  Wallet,
 } from "lucide-react";
 import Footer from "@/components/Custom/Footer";
 
 const PublicLayout = () => {
-  // 1. Pull isAdminMode from the store instead of checking the URL
   const { isExpanded, isAdminMode } = useSidebarStore();
   const location = useLocation();
 
   const routesWithoutNavbar = ["/login"];
   const shouldShowNavbar = !routesWithoutNavbar.includes(location.pathname);
 
-  const dashboardRoutes = ["/blank", "/vehi", "/admin", "/dashboard"];
+  const dashboardRoutes = [
+    "/blank",
+    "/vehi",
+    "/admin",
+    "/dashboard",
+    "/wallet",
+    "/vehicles",
+  ];
   const isDashboardPage = dashboardRoutes.some((route) =>
     location.pathname.startsWith(route),
   );
@@ -46,10 +54,12 @@ const PublicLayout = () => {
   const userDashboardLinks = [
     { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
     {
-      label: "پارکینگ من",
+      label: "پارکینگ های من",
       to: "/dashboard/management",
       icon: <ParkingSquare size={20} />,
     },
+    { label: "ماشین های من", to: "/vehicles", icon: <Car size={20} /> },
+    { label: "کیف پول", to: "/wallet", icon: <Wallet size={20} /> },
     {
       label: "ویرایش حساب کاربری",
       to: "/dashboard/profile",
@@ -67,7 +77,6 @@ const PublicLayout = () => {
     { label: "مدیریت کاربران", to: "/admin/users", icon: <Users size={20} /> },
   ];
 
-  // 2. Select links based on the toggle state, not the URL
   const dashboardLinks = isAdminMode
     ? [...adminDashboardLinks]
     : [...userDashboardLinks];
