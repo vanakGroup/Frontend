@@ -169,9 +169,9 @@ export default function ParkingProfile() {
     latitude: data.latitude || 35.6892,
     longitude: data.longitude || 51.389,
     amenities: {
-      cctv: data.attributeIds?.includes(1) || true, // Fallback to keep UI rich
+      cctv: data.attributeIds?.includes(1) || false,
       security: data.attributeIds?.includes(2) || false,
-      covered: data.attributeIds?.includes(3) || true,
+      covered: data.attributeIds?.includes(3) || false,
     },
     images:
       data.imageUrls?.length > 0

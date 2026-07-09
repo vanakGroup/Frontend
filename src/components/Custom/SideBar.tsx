@@ -38,7 +38,7 @@ export const SideBar = ({ children }: SideBarProps) => {
     <>
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] md:hidden transition-opacity cursor-pointer"
           onClick={collapseSidebar}
         />
       )}
