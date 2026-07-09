@@ -46,8 +46,6 @@ interface SwaggerPutResponse {
   statusCode: number;
 }
 
-const API_BASE_URL = "http://localhost:8080/v1";
-
 // --- Helper to convert Persian/Arabic digits to English ---
 function convertDigitsToEnglish(str: string): string {
   const persianDigits = [

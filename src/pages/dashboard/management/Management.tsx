@@ -57,7 +57,7 @@ export default function Management() {
             >
               {/* Buttons  */}
               <div
-                className="flex items-center gap-2 shrink-0"
+                className="flex items-center gap-2 shrink-0 cursor-pointer"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Button
@@ -135,7 +135,7 @@ export default function Management() {
 
               {/* Buttons on bottom — 2 per row */}
               <div
-                className="grid grid-cols-2 gap-2"
+                className="grid grid-cols-2 gap-2 cursor-pointer"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Button
