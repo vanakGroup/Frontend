@@ -588,8 +588,6 @@ export default function ParkingProfile() {
               center={[parking.latitude, parking.longitude]}
               zoom={15}
               style={{ height: "100%", width: "100%" }}
-              dragging={false}
-              scrollWheelZoom={false}
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <Marker position={[parking.latitude, parking.longitude]} />

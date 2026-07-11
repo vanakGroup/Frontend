@@ -18,7 +18,7 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <div className="bg-white p-2 rounded-lg shadow-md">
-                <img src="/public/jl.png" className="h-6 w-6" />
+                <img src="/jl.png" className="h-6 w-6" />
               </div>
               <span className="text-xl font-black text-white tracking-tight">
                 پلتفرم ونک

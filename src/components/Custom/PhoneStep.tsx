@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CustomInput from "@/components/Custom/CustomInput";
@@ -82,11 +83,13 @@ export default function PhoneStep({
       <Card className="w-full max-w-[400px] shadow-lg min-h-[500px] flex flex-col justify-between">
         <CardHeader>
           <CardContent>
-            <img
-              src="/logotype.png"
-              alt="Logo"
-              className="mx-auto w-32 md:w-full md:max-w-[200px] h-auto"
-            />
+            <Link to="/" className="block cursor-pointer">
+              <img
+                src="/logotype.png"
+                alt="Logo"
+                className="mx-auto w-32 md:w-full md:max-w-[200px] h-auto transition-transform duration-200 hover:scale-[1.03]"
+              />
+            </Link>
           </CardContent>
           <CardTitle className="text-2xl font-bold text-center tracking-tight text-card-foreground">
             {"ورود یا ثبت نام"}
