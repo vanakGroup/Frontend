@@ -196,6 +196,15 @@ const teamMembers = [
 
 export default function AboutUs() {
   const Navigate = useNavigate();
+  const [activeGoalIndex, setActiveGoalIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveGoalIndex((prev) => (prev + 1) % 3);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div
       dir="rtl"
@@ -216,6 +225,21 @@ export default function AboutUs() {
         }
         .data-\\[state\\=closed\\]\\:animate-accordion-up[data-state=closed] {
           animation: accordion-up 0.28s cubic-bezier(0.87, 0, 0.13, 1) forwards;
+        }
+
+        /* Custom Tab Transitions */
+        @keyframes tab-fade-in-up {
+          0% { opacity: 0; transform: translateY(15px) scale(0.98); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .tab-content-active[data-state=active] {
+          animation: tab-fade-in-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        /* Progress bar animation for custom carousel */
+        @keyframes progress {
+          0% { width: 0%; }
+          100% { width: 100%; }
         }
       `}</style>
 
@@ -451,112 +475,95 @@ export default function AboutUs() {
             </p>
           </div>
 
-          <Tabs defaultValue="mission" className="w-full">
-            <div className="flex justify-center mb-8">
-              <TabsList className="grid grid-cols-3 w-full max-w-lg h-auto min-h-[48px] border border-border bg-muted p-1 rounded-2xl">
-                <TabsTrigger
-                  value="mission"
-                  className="flex items-center justify-center gap-2 py-2 rounded-xl transition-all font-semibold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm text-sm"
-                >
-                  <Target className="h-4 w-4" />
-                  <span>ماموریت ما</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="vision"
-                  className="flex items-center justify-center gap-2 py-2 rounded-xl transition-all font-semibold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm text-sm"
-                >
-                  <Eye className="h-4 w-4" />
-                  <span>چشم‌انداز</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="values"
-                  className="flex items-center justify-center gap-2 py-2 rounded-xl transition-all font-semibold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm text-sm"
-                >
-                  <Compass className="h-4 w-4" />
-                  <span>ارزش‌ها</span>
-                </TabsTrigger>
-              </TabsList>
+          <div className="w-full flex flex-col gap-8">
+            {/* Custom Auto-sliding Cards */}
+            <div className="grid grid-cols-3 w-full max-w-lg h-auto min-h-[48px] border border-border bg-muted p-1 rounded-2xl mx-auto gap-1">
+              {[
+                { id: "mission", title: "ماموریت ما", icon: Target },
+                { id: "vision", title: "چشم‌انداز", icon: Eye },
+                { id: "values", title: "ارزش‌ها", icon: Compass },
+              ].map((goal, idx) => {
+                const Icon = goal.icon;
+                const isActive = activeGoalIndex === idx;
+                return (
+                  <div
+                    key={goal.id}
+                    onClick={() => setActiveGoalIndex(idx)}
+                    className={`cursor-pointer flex items-center justify-center gap-2 py-2 px-1 rounded-xl transition-all duration-300 relative overflow-hidden group ${
+                      isActive
+                        ? "bg-background text-primary shadow-sm font-semibold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-background/50 font-medium"
+                    }`}
+                  >
+                    <Icon className={`h-4 w-4 shrink-0 transition-colors ${isActive ? 'text-primary' : ''}`} />
+                    <span className="text-sm md:text-base whitespace-nowrap">
+                      {goal.title}
+                    </span>
+                    {/* Progress Bar for Active state */}
+                    {isActive && (
+                      <div className="absolute bottom-0 left-0 h-[3px] w-full bg-primary/10">
+                        <div
+                          key={activeGoalIndex}
+                          className="h-full bg-primary"
+                          style={{
+                            animation: "progress 5s linear forwards",
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
+            {/* Carousel Content */}
             <div
-              className="bg-card border border-border rounded-2xl p-6 md:p-10 shadow-xl transition-all duration-300 relative overflow-hidden text-right"
+              className="bg-card border border-border rounded-2xl shadow-xl relative overflow-hidden w-full text-right"
               dir="rtl"
             >
-              <TabsContent
-                value="mission"
-                className="space-y-4 outline-none animate-in fade-in-50 duration-500 mt-0 text-right w-full"
-                dir="rtl"
+              <div
+                className="flex transition-transform duration-700 ease-in-out w-full"
+                style={{ transform: `translateX(${activeGoalIndex * 100}%)` }}
               >
-                <h4
-                  className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full"
-                  dir="rtl"
-                >
-                  <Target className="text-primary h-5 w-5 shrink-0" />
-                  <span>روان‌سازی ترافیک و بهینه‌سازی فضاهای خاموش شهری</span>
-                </h4>
-                <p
-                  className="text-muted-foreground leading-relaxed text-right text-justify w-full"
-                  dir="rtl"
-                >
-                  ماموریت ما در پلتفرم ونک، برقراری ارتباط هوشمند و بی‌واسطه
-                  میان دارندگان فضاهای پارک بدون استفاده و رانندگان جویای پارک
-                  است. ما متعهد به طراحی بستری کاملاً پایدار، با کاربری ساده و
-                  ایمن هستیم تا با کاهش زمان جستجوی جای پارک، گامی عملی در
-                  راستای تقلیل مصرف سوخت و آلودگی هوای کلان‌شهر تهران برداریم.
-                </p>
-              </TabsContent>
-
-              <TabsContent
-                value="vision"
-                className="space-y-4 outline-none animate-in fade-in-50 duration-500 mt-0 text-right w-full"
-                dir="rtl"
-              >
-                <h4
-                  className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full"
-                  dir="rtl"
-                >
-                  <Eye className="text-primary h-5 w-5 shrink-0" />
-                  <span>
-                    هوشمندترین شبکه یکپارچه اشتراک‌گذاری پارک در ایران
-                  </span>
-                </h4>
-                <p
-                  className="text-muted-foreground leading-relaxed text-right text-justify w-full"
-                  dir="rtl"
-                >
-                  ما به سوی فردایی پیش می‌رویم که در آن هیچ بن‌بست ترافیکی به
-                  وجود نیاید و هیچ راننده‌ای دغدغه فکری جای پارک پیش از حرکت را
-                  نداشته باشد. رویای ما یک شهر هوشمند واقعی است؛ جایی که از
-                  تک‌تک ظرفیت‌های شهری حداکثر بهره‌وری حاصل شده و سیستم‌های نوین
-                  نقشه و پرداخت هوشمند با زندگی شهروندان عجین شده باشند.
-                </p>
-              </TabsContent>
-
-              <TabsContent
-                value="values"
-                className="space-y-4 outline-none animate-in fade-in-50 duration-500 mt-0 text-right w-full"
-                dir="rtl"
-              >
-                <h4
-                  className="text-xl font-bold text-foreground flex items-center justify-start gap-2.5 text-right w-full"
-                  dir="rtl"
-                >
-                  <Compass className="text-primary h-5 w-5 shrink-0" />
-                  <span>شفافیت مالی، امنیت کامل و مسئولیت اجتماعی پایدار</span>
-                </h4>
-                <p
-                  className="text-muted-foreground leading-relaxed text-right text-justify w-full"
-                  dir="rtl"
-                >
-                  به عنوان تیمی از متخصصان دانشگاه علم و صنعت، ارزش‌های بنیادین
-                  خود را بر پایه شفافیت کامل در تراکنش‌های مالی، حفظ تمام‌عیار
-                  حریم خصوصی کاربران، تعهد به حفظ محیط زیست شهری و پشتیبانی
-                  پاسخگو بنا نهاده‌ایم. ما باور داریم پیوند دانش دانشگاهی با
-                  نیازهای واقعی جامعه، زیباترین دستاورد علمی ما خواهد بود.
-                </p>
-              </TabsContent>
+                {[
+                  {
+                    id: "mission",
+                    icon: Target,
+                    heading: "روان‌سازی ترافیک و بهینه‌سازی فضاهای خاموش شهری",
+                    desc: "ماموریت ما در پلتفرم ونک، برقراری ارتباط هوشمند و بی‌واسطه میان دارندگان فضاهای پارک بدون استفاده و رانندگان جویای پارک است. ما متعهد به طراحی بستری کاملاً پایدار، با کاربری ساده و ایمن هستیم تا با کاهش زمان جستجوی جای پارک، گامی عملی در راستای تقلیل مصرف سوخت و آلودگی هوای کلان‌شهر تهران برداریم.",
+                  },
+                  {
+                    id: "vision",
+                    icon: Eye,
+                    heading: "هوشمندترین شبکه یکپارچه اشتراک‌گذاری پارک در ایران",
+                    desc: "ما به سوی فردایی پیش می‌رویم که در آن هیچ بن‌بست ترافیکی به وجود نیاید و هیچ راننده‌ای دغدغه فکری جای پارک پیش از حرکت را نداشته باشد. رویای ما یک شهر هوشمند واقعی است؛ جایی که از تک‌تک ظرفیت‌های شهری حداکثر بهره‌وری حاصل شده و سیستم‌های نوین نقشه و پرداخت هوشمند با زندگی شهروندان عجین شده باشند.",
+                  },
+                  {
+                    id: "values",
+                    icon: Compass,
+                    heading: "شفافیت مالی، امنیت کامل و مسئولیت اجتماعی پایدار",
+                    desc: "به عنوان تیمی از متخصصان دانشگاه علم و صنعت، ارزش‌های بنیادین خود را بر پایه شفافیت کامل در تراکنش‌های مالی، حفظ تمام‌عیار حریم خصوصی کاربران، تعهد به حفظ محیط زیست شهری و پشتیبانی پاسخگو بنا نهاده‌ایم. ما باور داریم پیوند دانش دانشگاهی با نیازهای واقعی جامعه، زیباترین دستاورد علمی ما خواهد بود.",
+                  },
+                ].map((content) => {
+                  const Icon = content.icon;
+                  return (
+                    <div
+                      key={content.id}
+                      className="w-full flex-none shrink-0 flex flex-col space-y-4 p-6 md:p-10"
+                    >
+                      <h4 className="text-xl md:text-2xl font-bold text-foreground flex items-center justify-start gap-3">
+                        <Icon className="text-primary h-6 w-6 shrink-0" />
+                        <span>{content.heading}</span>
+                      </h4>
+                      <p className="text-muted-foreground leading-relaxed text-right text-justify w-full md:text-lg">
+                        {content.desc}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </Tabs>
+          </div>
         </section>
       </ScrollReveal>
 

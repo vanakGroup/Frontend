@@ -186,7 +186,16 @@ export default function UserProfile() {
       return;
     }
 
-    const cleanShaba = profile.shaba_number.replace(/\s/g, "");
+    const cleanShaba = profile.shaba_number.replace(/\s/g, "").toUpperCase();
+    if (cleanShaba) {
+      const shabaRegex = /^IR\d{24}$/;
+      if (!shabaRegex.test(cleanShaba)) {
+        setErrorMessage(
+          "شماره شبا وارد شده معتبر نیست (باید با IR شروع شده و شامل ۲۴ رقم باشد).",
+        );
+        return;
+      }
+    }
 
     try {
       setIsSaving(true);
