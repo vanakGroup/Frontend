@@ -14,7 +14,7 @@ import type {
   PutParams,
 } from "../types/apiTypes";
 
-export const baseURL = "http://194.48.198.184:8080"; // backend URL
+export const baseURL = "https://vparking.ir"; // backend URL
 
 const apiClient: AxiosInstance = axios.create({
   baseURL,
