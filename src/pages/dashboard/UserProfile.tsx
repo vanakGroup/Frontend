@@ -118,6 +118,9 @@ export default function UserProfile() {
           if (!userData.phone) {
             userData.phone = storePhone || "";
           }
+          if (userData.shaba_number && userData.shaba_number.toUpperCase().startsWith("IR")) {
+            userData.shaba_number = userData.shaba_number.substring(2);
+          }
           setProfile(userData);
           if (userData.first_name || userData.last_name) {
             setUsername(`${userData.first_name || ""} ${userData.last_name || ""}`.trim());
@@ -186,12 +189,15 @@ export default function UserProfile() {
       return;
     }
 
-    const cleanShaba = profile.shaba_number.replace(/\s/g, "").toUpperCase();
+    let cleanShaba = profile.shaba_number.replace(/\s/g, "").toUpperCase();
     if (cleanShaba) {
-      const shabaRegex = /^IR\d{24}$/;
-      if (!shabaRegex.test(cleanShaba)) {
+      if (cleanShaba.startsWith("IR")) {
+        cleanShaba = cleanShaba.substring(2);
+      }
+      const digitsRegex = /^\d{24}$/;
+      if (!digitsRegex.test(cleanShaba)) {
         setErrorMessage(
-          "شماره شبا وارد شده معتبر نیست (باید با IR شروع شده و شامل ۲۴ رقم باشد).",
+          "شماره شبا وارد شده معتبر نیست (باید دقیقاً ۲۴ رقم باشد).",
         );
         return;
       }
@@ -216,7 +222,7 @@ export default function UserProfile() {
           first_name: payload.firstname,
           last_name: payload.lastname,
           national_code: payload.national_code,
-          shaba_number: payload.shaba_number,
+          shaba_number: cleanShaba,
         }));
         setUsername(`${payload.firstname} ${payload.lastname}`.trim());
         setTimeout(() => setSuccessMessage(null), 4000);
@@ -422,7 +428,7 @@ export default function UserProfile() {
                     htmlFor="shaba_number"
                     className="text-xs md:text-sm font-bold text-foreground/80 transition-colors group-focus-within:text-primary"
                   >
-                    شماره حساب یا شماره شبا (جهت تسویه مالکان){" "}
+                    شماره شبا بدون IR (جهت تسویه مالکان){" "}
                     <span className="text-[10px] text-muted-foreground font-normal">
                       (اختیاری)
                     </span>
@@ -435,7 +441,8 @@ export default function UserProfile() {
                       name="shaba_number"
                       value={profile.shaba_number || ""}
                       onChange={handleInputChange}
-                      placeholder="مثال: شماره حساب یا شماره شبا با IR"
+                      placeholder="مثال: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴"
+                      maxLength={24}
                       className="w-full pr-12 pl-4 py-3.5 bg-background/50 border border-border/80 focus:border-primary focus:bg-background rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-right font-mono shadow-sm focus:shadow-md"
                     />
                   </div>
