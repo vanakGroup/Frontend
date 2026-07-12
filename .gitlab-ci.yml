@@ -33,5 +33,5 @@ deploy_to_vps:
     - echo "$HAMDOCKER_PASSWORD" | docker login $HAMDOCKER_REGISTRY -u "$HAMDOCKER_USER" --password-stdin
     - docker pull $HAMDOCKER_IMAGE:latest
     - docker rm -f vanak-frontend-container || true
-    - docker run -d --name vanak-frontend-container -p 80:80 --restart always $HAMDOCKER_IMAGE:latest
+    - docker run -d --name vanak-frontend-container -p 3000:80 --restart always $HAMDOCKER_IMAGE:latest
     - docker image prune -f
