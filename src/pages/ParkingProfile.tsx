@@ -111,7 +111,9 @@ export default function ParkingProfile() {
         setIsLoading(true);
         const fetchId = id || "1";
         // Using base client instead of absolute URL
-        const response = await getData({ endPoint: `/v1/parking/parkingInfo/${fetchId}` });
+        const response = await getData({
+          endPoint: `/v1/parking/parkingInfo/${fetchId}`,
+        });
         setData(response.data);
       } catch (err) {
         console.warn("API failed, using mock data for now", err);
