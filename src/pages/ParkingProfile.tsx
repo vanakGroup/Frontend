@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
@@ -66,7 +67,7 @@ interface ParkingData {
   status: string;
 }
 
-// amenity config
+// amenity config — بر اساس attributeIds که از بک میاد
 const amenityConfig: Record<
   number,
   { label: string; icon: React.ElementType }
@@ -136,12 +137,10 @@ export default function ParkingProfile() {
   useEffect(() => {
     if (!id) return;
     getData({ endPoint: `/v1/parking/parkingInfo/${id}` })
-      .then((res: unknown) => {
-        // res ممکنه { data: ParkingData } یا مستقیم ParkingData باشه
-        const data = res as { data?: ParkingData } & ParkingData;
-        setParking(data.data ?? data);
+      .then((res: any) => {
+        setParking(res.data || res);
       })
-      .catch((err: unknown) => console.error("parking info error:", err))
+      .catch((err: any) => console.error("parking info error:", err))
       .finally(() => setIsLoading(false));
   }, [id]);
 
@@ -150,11 +149,11 @@ export default function ParkingProfile() {
     if (showReserveDialog && isLoggedIn) {
       getMyVehicles()
         .then(setVehicles)
-        .catch((err: unknown) => console.error("vehicles error:", err));
+        .catch((err: any) => console.error("vehicles error:", err));
     }
   }, [showReserveDialog, isLoggedIn]);
 
-  // reset when dialog opens
+  // reset date when dialog opens
   useEffect(() => {
     if (showReserveDialog) {
       setSelectedDate("");
@@ -180,6 +179,7 @@ export default function ParkingProfile() {
     );
   }
 
+  // slots for selected date
   const slotsForDate = parking.slots.filter(
     (s) => !selectedDate || s.date === selectedDate,
   );
@@ -196,6 +196,7 @@ export default function ParkingProfile() {
 
   const toggleHour = (hour: number) => {
     if (isHourBooked(hour) || !isHourAvailable(hour)) return;
+
     setSelectedHours((prev) => {
       if (prev.length === 0) return [hour];
       if (prev.includes(hour)) {
@@ -237,6 +238,7 @@ export default function ParkingProfile() {
     const startHour = sorted[0];
     const endHour = sorted[sorted.length - 1] + 1;
 
+    // convert to Unix timestamp
     const baseDate = new Date(selectedDate);
     const startTime = Math.floor(
       new Date(
@@ -270,7 +272,7 @@ export default function ParkingProfile() {
       setSelectedDate("");
       setSelectedVehicleId("");
       alert("رزرو با موفقیت انجام شد! ✅");
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error("reservation error:", err);
       setReserveError("خطا در ثبت رزرو. لطفا دوباره تلاش کنید.");
     } finally {
@@ -278,11 +280,12 @@ export default function ParkingProfile() {
     }
   };
 
+  // all unique dates from slots
   const availableDates = [...new Set(parking.slots.map((s) => s.date))].sort();
 
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
-      {/* Back */}
+      {/* Back button */}
       <div className="bg-background border-b border-border px-4 py-3">
         <button
           onClick={() => navigate(-1)}
@@ -337,6 +340,7 @@ export default function ParkingProfile() {
                 </>
               )}
             </div>
+
             {parking.imageUrls.length > 1 && (
               <div className="flex gap-2 p-3 overflow-x-auto">
                 {parking.imageUrls.map((img, i) => (
@@ -387,11 +391,9 @@ export default function ParkingProfile() {
             </div>
             <div className="bg-muted rounded-xl p-3 text-center">
               <Car size={18} className="text-primary mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground mb-0.5">
-                شماره پارکینگ
-              </p>
+              <p className="text-xs text-muted-foreground mb-0.5">ظرفیت</p>
               <p className="text-sm font-medium">
-                {parking.address?.unitNumber ?? "—"}
+                {parking.address?.unitNumber ?? "—"} خودرو
               </p>
             </div>
             <div className="bg-muted rounded-xl p-3 text-center">
@@ -441,14 +443,11 @@ export default function ParkingProfile() {
           <h2 className="font-semibold text-foreground border-b border-border pb-2">
             موقعیت روی نقشه
           </h2>
-          <div
-            className="rounded-xl overflow-hidden border border-border h-64"
-            style={{ zIndex: 0, position: "relative" }}
-          >
+          <div className="rounded-xl overflow-hidden border border-border h-64">
             <MapContainer
               center={[parking.latitude, parking.longitude]}
               zoom={15}
-              style={{ height: "100%", width: "100%", zIndex: 0 }}
+              style={{ height: "100%", width: "100%" }}
               dragging={false}
               scrollWheelZoom={false}
             >
@@ -467,6 +466,7 @@ export default function ParkingProfile() {
       {showReserveDialog && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
               <button
                 onClick={() => setShowReserveDialog(false)}
@@ -480,6 +480,7 @@ export default function ParkingProfile() {
             </div>
 
             <div className="p-5 space-y-5">
+              {/* راهنما */}
               <div className="space-y-1 text-right">
                 <p className="text-sm text-muted-foreground">
                   ساعت‌های مورد نظر را انتخاب کنید. ساعت‌های خاکستری رزرو
@@ -490,7 +491,7 @@ export default function ParkingProfile() {
                 </p>
               </div>
 
-              {/* تاریخ */}
+              {/* انتخاب تاریخ */}
               <div className="space-y-1.5" dir="rtl">
                 <label className="text-sm font-medium text-foreground">
                   تاریخ رزرو
@@ -519,7 +520,7 @@ export default function ParkingProfile() {
                 )}
               </div>
 
-              {/* خودرو */}
+              {/* انتخاب خودرو */}
               <div className="space-y-1.5" dir="rtl">
                 <label className="text-sm font-medium text-foreground">
                   خودرو
@@ -558,6 +559,7 @@ export default function ParkingProfile() {
                     const booked = isHourBooked(hour);
                     const available = isHourAvailable(hour);
                     const selected = selectedHours.includes(hour);
+
                     return (
                       <button
                         key={hour}
@@ -596,7 +598,7 @@ export default function ParkingProfile() {
                 </div>
               </div>
 
-              {/* بازه + قیمت */}
+              {/* بازه انتخابی + قیمت */}
               {selectedHours.length > 0 && (
                 <div className="bg-muted rounded-xl p-4 space-y-3 text-right">
                   <p className="text-sm font-medium text-foreground">
@@ -626,6 +628,7 @@ export default function ParkingProfile() {
                 </div>
               )}
 
+              {/* خطا */}
               {reserveError && (
                 <p className="text-sm text-destructive text-right font-medium">
                   {reserveError}
@@ -633,6 +636,7 @@ export default function ParkingProfile() {
               )}
             </div>
 
+            {/* Footer */}
             <div className="p-5 border-t border-border flex gap-3">
               <Button
                 variant="outline"
