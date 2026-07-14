@@ -100,6 +100,18 @@ export const putData = async ({ endPoint, data }: PutParams) => {
   }
 };
 
+export const putImageData = async ({ endPoint, data }: PutParams) => {
+  try {
+    const response: AxiosResponse = await apiClient.put(endPoint, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("error in putImageData", error);
+    throw error;
+  }
+};
+
 export const deleteData = async ({ endPoint, data, headers }: DeleteParams) => {
   try {
     const response: AxiosResponse = await apiClient.delete(endPoint, {
