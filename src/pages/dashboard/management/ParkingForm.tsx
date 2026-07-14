@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Plus, X, Trash2 } from "lucide-react";
+import { ArrowRight, Plus, X, Trash2, Loader2 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { parkingService } from "@/services/parkingService";
+import type { ParkingDetailResponse, StaticItem } from "@/types/parking";
+import CustomToast from "@/components/Custom/CustomToast";
+import { translateNumber } from "@/utils/translateNumber";
 
-// Fix leaflet marker icon
 const DefaultIcon = L.icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconRetinaUrl:
@@ -20,7 +23,6 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// --- Data ---
 const iranProvinces = [
   "تهران",
   "اصفهان",
@@ -68,108 +70,6 @@ const customLocale = {
   ],
 };
 
-const amenityList = [
-  { key: "cctv", label: "دوربین مداربسته (CCTV)" },
-  { key: "security", label: "نگهبان" },
-  { key: "covered", label: "مسقف" },
-];
-
-// --- Mock existing parking data (for edit mode) ---
-const mockParkingById: Record<
-  number,
-  {
-    name: string;
-    address: string;
-    phone: string;
-    capacity: string;
-    pricePerHour: string;
-    description: string;
-    province: string;
-    postalCode: string;
-    latitude: string;
-    longitude: string;
-    amenities: Amenities;
-    images: string[];
-    documents: string[];
-    daySlots: DaySlot[];
-  }
-> = {
-  1: {
-    name: "پارکینگ اول",
-    address: "تهران / میدان ونک",
-    phone: "021-88112233",
-    capacity: "50",
-    pricePerHour: "15000",
-    description: "پارکینگ سرپوشیده با امنیت بالا در نزدیکی میدان ونک",
-    province: "تهران",
-    postalCode: "1958765432",
-    latitude: "35.7575",
-    longitude: "51.4100",
-    amenities: { cctv: true, security: true, covered: false },
-    images: [
-      "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=200",
-    ],
-    documents: [
-      "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=200",
-    ],
-    daySlots: [
-      {
-        id: 1,
-        date: "",
-        dayName: "شنبه",
-        selectedHours: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
-      },
-    ],
-  },
-  2: {
-    name: "پارکینگ دوم",
-    address: "تهران / پارک وی",
-    phone: "021-22446688",
-    capacity: "30",
-    pricePerHour: "12000",
-    description: "پارکینگ مسقف با دوربین مداربسته در پارک وی",
-    province: "تهران",
-    postalCode: "1966778899",
-    latitude: "35.7720",
-    longitude: "51.4180",
-    amenities: { cctv: true, security: false, covered: true },
-    images: [],
-    documents: [],
-    daySlots: [
-      {
-        id: 1,
-        date: "",
-        dayName: "یکشنبه",
-        selectedHours: [9, 10, 11, 12, 13, 14],
-      },
-    ],
-  },
-  3: {
-    name: "پارکینگ سوم",
-    address: "تهران / میدان رسالت",
-    phone: "021-77889900",
-    capacity: "20",
-    pricePerHour: "10000",
-    description: "پارکینگ روباز در میدان رسالت",
-    province: "تهران",
-    postalCode: "1655443322",
-    latitude: "35.7350",
-    longitude: "51.4890",
-    amenities: { cctv: false, security: false, covered: false },
-    images: [],
-    documents: [],
-    daySlots: [
-      {
-        id: 1,
-        date: "",
-        dayName: "دوشنبه",
-        selectedHours: [7, 8, 9, 10],
-      },
-    ],
-  },
-};
-
-// --- Types ---
 interface TimeFrame {
   start: number;
   end: number;
@@ -178,11 +78,18 @@ interface TimeFrame {
 interface DaySlot {
   id: number;
   date: string;
+  dateISO: string;
   dayName: string;
   selectedHours: number[];
 }
 
+interface ImageFile {
+  file: File;
+  preview: string;
+}
+
 interface DocumentFile {
+  file: File;
   name: string;
   url: string;
 }
@@ -190,15 +97,24 @@ interface DocumentFile {
 interface DateObject {
   weekDay: { index: number };
   toString: () => string;
+  toDate: () => Date;
 }
 
-interface Amenities {
-  cctv: boolean;
-  security: boolean;
-  covered: boolean;
-}
+const fetchUrlAsFile = async (
+  url: string,
+  filename: string,
+): Promise<File | null> => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new File([blob], filename, { type: blob.type || "image/png" });
+  } catch (err) {
+    console.error("Failed to fetch file from url:", url, err);
+    return null;
+  }
+};
 
-// --- Helpers ---
 const hoursToTimeFrames = (hours: number[]): TimeFrame[] => {
   if (hours.length === 0) return [];
   const sorted = [...hours].sort((a, b) => a - b);
@@ -232,7 +148,39 @@ const getPersianDayName = (dateObject: DateObject | null): string => {
   return days[dateObject.weekDay.index] ?? "";
 };
 
-// --- Map click handler ---
+const getPersianDayNameFromISO = (dateString: string): string => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const days = [
+    "یکشنبه",
+    "دوشنبه",
+    "سه‌شنبه",
+    "چهارشنبه",
+    "پنجشنبه",
+    "جمعه",
+    "شنبه",
+  ];
+  return days[date.getDay()];
+};
+
+const isoToPersianDate = (dateString: string): string => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("fa-IR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+};
+
+const dateObjectToISO = (dateObject: DateObject | null): string => {
+  if (!dateObject || typeof dateObject.toDate !== "function") return "";
+  const native = dateObject.toDate();
+  if (isNaN(native.getTime())) return "";
+  return native.toISOString();
+};
+
 function MapClickHandler({
   onSelect,
 }: {
@@ -246,7 +194,6 @@ function MapClickHandler({
   return null;
 }
 
-// --- Component ---
 export default function ParkingForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -255,78 +202,159 @@ export default function ParkingForm() {
   const [form, setForm] = useState({
     name: "",
     address: "",
-    phone: "",
-    capacity: "",
-    pricePerHour: "",
-    description: "",
-    province: "",
-    postalCode: "",
     latitude: "",
     longitude: "",
+    postalCode: "",
+    unitNumber: "",
+    pricePerHour: "",
+    cityId: "",
   });
 
-  const [amenities, setAmenities] = useState<Amenities>({
-    cctv: false,
-    security: false,
-    covered: false,
-  });
-
-  const [provinceSearch, setProvinceSearch] = useState("");
-  const [showProvinceList, setShowProvinceList] = useState(false);
+  const [selectedAttributeIds, setSelectedAttributeIds] = useState<number[]>(
+    [],
+  );
+  const [citySearch, setCitySearch] = useState("");
+  const [showCityList, setShowCityList] = useState(false);
   const [markerPos, setMarkerPos] = useState<[number, number] | null>(null);
-  const [images, setImages] = useState<string[]>([]);
-  const [documents, setDocuments] = useState<DocumentFile[]>([]);
+  const [images, setImages] = useState<ImageFile[]>([]);
+  const [documentFile, setDocumentFile] = useState<DocumentFile | null>(null);
   const [daySlots, setDaySlots] = useState<DaySlot[]>([
-    { id: 1, date: "", dayName: "", selectedHours: [] },
+    { id: 1, date: "", dateISO: "", dayName: "", selectedHours: [] },
   ]);
 
-  // --- Pre-fill form with existing parking data when editing ---
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [cities, setCities] = useState<StaticItem[]>([]);
+  const [attributes, setAttributes] = useState<StaticItem[]>([]);
+
   useEffect(() => {
-    if (!isEdit) return;
-    const existing = mockParkingById[Number(id)];
-    if (!existing) return;
-    setForm({
-      name: existing.name,
-      address: existing.address,
-      phone: existing.phone,
-      capacity: existing.capacity,
-      pricePerHour: existing.pricePerHour,
-      description: existing.description,
-      province: existing.province,
-      postalCode: existing.postalCode,
-      latitude: existing.latitude,
-      longitude: existing.longitude,
-    });
-    setAmenities(existing.amenities);
-    setProvinceSearch(existing.province);
-    if (existing.latitude && existing.longitude) {
-      setMarkerPos([Number(existing.latitude), Number(existing.longitude)]);
+    if (isEdit && id) {
+      loadEditData(id);
+    } else {
+      loadStaticData();
     }
-    setImages(existing.images);
-    setDocuments(
-      existing.documents.map((url) => ({
-        name: url.split("/").pop() ?? "document",
-        url,
-      })),
-    );
-    setDaySlots(
-      existing.daySlots.length
-        ? existing.daySlots
-        : [{ id: 1, date: "", dayName: "", selectedHours: [] }],
-    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isEdit]);
 
-  // --- Handlers ---
+  const loadStaticData = async () => {
+    try {
+      const [citiesData, attributesData] = await Promise.all([
+        parkingService.getCities(),
+        parkingService.getAttributes(),
+      ]);
+      setCities(citiesData.data ?? []);
+      setAttributes(attributesData.data ?? []);
+      return {
+        cities: citiesData.data ?? [],
+        attributes: attributesData.data ?? [],
+      };
+    } catch (err) {
+      console.error("Error loading static data:", err);
+      return { cities: [], attributes: [] };
+    }
+  };
+
+  const loadEditData = async (parkingId: string) => {
+    setLoading(true);
+    try {
+      const { cities: loadedCities } = await loadStaticData();
+      const parkingRes = await parkingService.getParkingDetail(parkingId);
+      const parking = parkingRes.data;
+      if (parking) {
+        await applyParkingData(parking, loadedCities);
+      }
+    } catch (err) {
+      setError("خطا در بارگذاری اطلاعات پارکینگ");
+      console.error("Error loading parking:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyParkingData = async (
+    parking: ParkingDetailResponse,
+    allCities: StaticItem[],
+  ) => {
+    setForm({
+      name: parking.title,
+      address: parking.address.exactAddress,
+      latitude: parking.latitude.toString(),
+      longitude: parking.longitude.toString(),
+      postalCode: parking.address.postalCode,
+      unitNumber: parking.address.unitNumber.toString(),
+      pricePerHour: parking.basePrice.toString(),
+      cityId: parking.address.cityId.toString(),
+    });
+
+    setSelectedAttributeIds(parking.attributeIds ?? []);
+
+    const cityName =
+      allCities.find((c) => c.id === parking.address.cityId)?.name ?? "";
+    setCitySearch(cityName);
+    setShowCityList(false);
+
+    if (parking.latitude && parking.longitude) {
+      setMarkerPos([parking.latitude, parking.longitude]);
+    }
+
+    if (parking.imageUrls && parking.imageUrls.length > 0) {
+      const fetched = await Promise.all(
+        parking.imageUrls.map((url, i) =>
+          fetchUrlAsFile(url, `image-${i}`).then((file) => ({ url, file, i })),
+        ),
+      );
+      setImages(
+        fetched
+          .filter((x): x is { url: string; file: File; i: number } => !!x.file)
+          .map(({ file, url }) => ({ file, preview: url })),
+      );
+    }
+
+    if (parking.documentUrl) {
+      const docFile = await fetchUrlAsFile(parking.documentUrl, "document");
+      if (docFile) {
+        setDocumentFile({
+          file: docFile,
+          name: "مدرک موجود",
+          url: parking.documentUrl,
+        });
+      }
+    }
+
+    const slotsByDate: Record<string, number[]> = {};
+    parking.slots?.forEach((slot) => {
+      if (!slotsByDate[slot.date]) {
+        slotsByDate[slot.date] = [];
+      }
+      slotsByDate[slot.date].push(slot.hour);
+    });
+
+    const newDaySlots = Object.entries(slotsByDate).map(([date, hours], i) => ({
+      id: Date.now() + i,
+      date: isoToPersianDate(date),
+      dateISO: new Date(date).toISOString(),
+      dayName: getPersianDayNameFromISO(date),
+      selectedHours: hours,
+    }));
+
+    setDaySlots(
+      newDaySlots.length > 0
+        ? newDaySlots
+        : [{ id: 1, date: "", dateISO: "", dayName: "", selectedHours: [] }],
+    );
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleProvinceSelect = (province: string) => {
-    setForm({ ...form, province });
-    setProvinceSearch(province);
-    setShowProvinceList(false);
+  const handleCitySelect = (cityId: number, cityName: string) => {
+    setForm({ ...form, cityId: cityId.toString() });
+    setCitySearch(cityName);
+    setShowCityList(false);
   };
 
   const handleLocationSelect = (lat: number, lng: number) => {
@@ -342,23 +370,30 @@ export default function ParkingForm() {
     const files = e.target.files;
     if (!files) return;
     Array.from(files).forEach((f) => {
-      setImages((prev) => [...prev, URL.createObjectURL(f)]);
+      setImages((prev) => [
+        ...prev,
+        { file: f, preview: URL.createObjectURL(f) },
+      ]);
     });
   };
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
-    Array.from(files).forEach((f) => {
-      setDocuments((prev) => [
-        ...prev,
-        { name: f.name, url: URL.createObjectURL(f) },
-      ]);
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    setDocumentFile({
+      file,
+      name: file.name,
+      url: URL.createObjectURL(file),
     });
   };
 
-  const toggleAmenity = (key: keyof Amenities) => {
-    setAmenities((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleAttribute = (attributeId: number) => {
+    setSelectedAttributeIds((prev) =>
+      prev.includes(attributeId)
+        ? prev.filter((id) => id !== attributeId)
+        : [...prev, attributeId],
+    );
   };
 
   const toggleHour = (dayId: number, hour: number) => {
@@ -376,15 +411,16 @@ export default function ParkingForm() {
     );
   };
 
-  const handleDateChange = (
-    dayId: number,
-    dateObject: DateObject | null,
-    dateStr: string,
-  ) => {
+  const handleDateChange = (dayId: number, dateObject: DateObject | null) => {
     setDaySlots((prev) =>
       prev.map((d) =>
         d.id === dayId
-          ? { ...d, date: dateStr, dayName: getPersianDayName(dateObject) }
+          ? {
+              ...d,
+              date: dateObject ? dateObject.toString() : "",
+              dateISO: dateObjectToISO(dateObject),
+              dayName: getPersianDayName(dateObject),
+            }
           : d,
       ),
     );
@@ -393,7 +429,7 @@ export default function ParkingForm() {
   const addNewDay = () => {
     setDaySlots((prev) => [
       ...prev,
-      { id: Date.now(), date: "", dayName: "", selectedHours: [] },
+      { id: Date.now(), date: "", dateISO: "", dayName: "", selectedHours: [] },
     ]);
   };
 
@@ -401,34 +437,134 @@ export default function ParkingForm() {
     setDaySlots((prev) => prev.filter((d) => d.id !== dayId));
   };
 
-  const buildPayload = () => {
-    return daySlots.map((d) => ({
-      date: d.date,
-      dayName: d.dayName,
-      timeFrames: hoursToTimeFrames(d.selectedHours),
-    }));
+  const buildFormData = () => {
+    const formData = new FormData();
+    formData.append("title", form.name);
+    formData.append("latitude", form.latitude);
+    formData.append("longitude", form.longitude);
+    formData.append("basePrice", form.pricePerHour);
+    formData.append("address.cityId", form.cityId);
+    formData.append("address.postalCode", form.postalCode);
+    formData.append("address.unitNumber", form.unitNumber);
+    formData.append("address.exactAddress", form.address);
+
+    if (selectedAttributeIds.length > 0) {
+      selectedAttributeIds.forEach((attrId) => {
+        formData.append("attributeIds", attrId.toString());
+      });
+    }
+
+    const slots: Array<{ Date: string; StartHour: number; EndHour: number }> =
+      [];
+    daySlots.forEach((daySlot) => {
+      if (daySlot.dateISO && daySlot.selectedHours.length > 0) {
+        const timeFrames = hoursToTimeFrames(daySlot.selectedHours);
+        timeFrames.forEach((frame) => {
+          slots.push({
+            Date: daySlot.dateISO,
+            StartHour: frame.start,
+            EndHour: frame.end,
+          });
+        });
+      }
+    });
+
+    formData.append("slots", JSON.stringify(slots));
+
+    if (documentFile && documentFile.file.size > 0) {
+      formData.append("documentFile", documentFile.file);
+    }
+
+    const newImages = images.filter((img) => img.file.size > 0);
+    newImages.forEach((img) => {
+      formData.append("images", img.file);
+    });
+
+    if (isEdit && id) {
+      formData.append("parkingId", id);
+    }
+
+    return formData;
   };
 
-  const handleSubmit = () => {
-    const payload = {
-      ...form,
-      amenities,
-      schedule: buildPayload(),
-      images,
-      documents: documents.map((d) => d.url),
-    };
-    console.log("payload:", JSON.stringify(payload, null, 2));
-    navigate("/dashboard/management");
+  const handleSubmit = async () => {
+    if (
+      !form.name ||
+      !form.address ||
+      !form.latitude ||
+      !form.longitude ||
+      !form.pricePerHour ||
+      !form.cityId ||
+      !form.postalCode ||
+      !form.unitNumber
+    ) {
+      setError("لطفاً تمام فیلدهای اجباری را پر کنید");
+      CustomToast.error("لطفاً تمام فیلدهای اجباری را پر کنید");
+      return;
+    }
+
+    if (!documentFile) {
+      setError("بارگذاری مدرک پارکینگ الزامی است");
+      CustomToast.error("بارگذاری مدرک پارکینگ الزامی است");
+      return;
+    }
+
+    if (form.postalCode.length !== 10) {
+      setError("کد پستی باید دقیقاً ۱۰ رقم باشد");
+      CustomToast.error("کد پستی باید دقیقاً ۱۰ رقم باشد");
+      return;
+    }
+
+    const invalidSlot = daySlots.find(
+      (d) =>
+        (d.selectedHours.length > 0 && !d.dateISO) ||
+        (d.dateISO && d.selectedHours.length === 0),
+    );
+    if (invalidSlot) {
+      const msg =
+        invalidSlot.selectedHours.length > 0
+          ? "برای ساعت‌های انتخاب‌شده باید تاریخ را مشخص کنید"
+          : "برای تاریخ انتخاب‌شده باید حداقل یک ساعت انتخاب کنید";
+      setError(msg);
+      CustomToast.error(msg);
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+      const formData = buildFormData();
+
+      if (isEdit) {
+        await parkingService.updateParking(formData);
+        CustomToast.success("پارکینگ با موفقیت ویرایش شد");
+      } else {
+        await parkingService.createParking(formData);
+        CustomToast.success("پارکینگ با موفقیت ثبت شد");
+      }
+
+      navigate("/dashboard/management");
+    } catch (err) {
+      setError("خطا در ذخیره پارکینگ");
+      CustomToast.error("خطا در ذخیره پارکینگ");
+      console.error("Error saving parking:", err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const filteredProvinces = iranProvinces.filter((p) =>
-    p.includes(provinceSearch),
-  );
+  const filteredCities = cities.filter((c) => c.name.includes(citySearch));
 
-  // --- Render ---
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-muted-foreground" size={32} />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate("/dashboard/management")}
@@ -446,8 +582,13 @@ export default function ParkingForm() {
         </div>
       </div>
 
+      {error && (
+        <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-right">
+          <p className="text-destructive text-sm">{error}</p>
+        </div>
+      )}
+
       <div className="space-y-5 pb-10">
-        {/* ── Basic Info ── */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="font-semibold text-foreground border-b border-border pb-2">
             اطلاعات پایه
@@ -456,7 +597,7 @@ export default function ParkingForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">
-                نام پارکینگ
+                نام پارکینگ <span className="text-destructive">*</span>
               </label>
               <input
                 name="name"
@@ -470,72 +611,43 @@ export default function ParkingForm() {
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">
-                شماره تماس
-              </label>
-              <input
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="021-XXXXXXXX"
-                className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                dir="ltr"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
-                شماره پارکینگ
-              </label>
-              <input
-                name="capacity"
-                value={form.capacity}
-                onChange={handleChange}
-                placeholder="مثال: 3"
-                type="number"
-                className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-right"
-                dir="rtl"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">
-                قیمت هر ساعت (تومان)
+                قیمت هر ساعت (تومان) <span className="text-destructive">*</span>
               </label>
               <input
                 name="pricePerHour"
                 value={form.pricePerHour}
                 onChange={handleChange}
                 placeholder="مثال: 15000"
-                //type="number"
                 className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-right"
                 dir="rtl"
               />
             </div>
 
-            {/* Province search */}
             <div className="space-y-1.5 relative">
-              <label className="text-sm font-medium text-foreground">شهر</label>
+              <label className="text-sm font-medium text-foreground">
+                شهر <span className="text-destructive">*</span>
+              </label>
               <input
-                value={provinceSearch}
+                value={citySearch}
                 onChange={(e) => {
-                  setProvinceSearch(e.target.value);
-                  setShowProvinceList(true);
+                  setCitySearch(e.target.value);
+                  setShowCityList(true);
                 }}
-                onFocus={() => setShowProvinceList(true)}
-                onBlur={() => setTimeout(() => setShowProvinceList(false), 150)}
+                onFocus={() => setShowCityList(true)}
+                onBlur={() => setTimeout(() => setShowCityList(false), 150)}
                 placeholder="جستجوی شهر..."
                 className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-right"
                 dir="rtl"
               />
-              {showProvinceList && filteredProvinces.length > 0 && (
+              {showCityList && filteredCities.length > 0 && (
                 <div className="absolute z-20 w-full bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto mt-1">
-                  {filteredProvinces.map((province) => (
+                  {filteredCities.map((city) => (
                     <button
-                      key={province}
-                      onMouseDown={() => handleProvinceSelect(province)}
+                      key={city.id}
+                      onMouseDown={() => handleCitySelect(city.id, city.name)}
                       className="w-full text-right px-3 py-2 text-sm hover:bg-accent transition-colors"
                     >
-                      {province}
+                      {city.name}
                     </button>
                   ))}
                 </div>
@@ -544,7 +656,7 @@ export default function ParkingForm() {
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">
-                کد پستی
+                کد پستی <span className="text-destructive">*</span>
               </label>
               <input
                 name="postalCode"
@@ -556,11 +668,26 @@ export default function ParkingForm() {
                 dir="ltr"
               />
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">
+                شماره واحد <span className="text-destructive">*</span>
+              </label>
+              <input
+                name="unitNumber"
+                value={form.unitNumber}
+                onChange={handleChange}
+                placeholder="مثال: 1"
+                type="number"
+                className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-right"
+                dir="rtl"
+              />
+            </div>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground">
-              آدرس کامل
+              آدرس کامل <span className="text-destructive">*</span>
             </label>
             <input
               name="address"
@@ -571,24 +698,8 @@ export default function ParkingForm() {
               dir="rtl"
             />
           </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">
-              توضیحات
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              placeholder="توضیحات اضافی درباره پارکینگ..."
-              rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-right resize-none"
-              dir="rtl"
-            />
-          </div>
         </div>
 
-        {/* ── Map ── */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <div className="border-b border-border pb-2">
             <h2 className="font-semibold text-foreground">موقعیت روی نقشه</h2>
@@ -615,7 +726,7 @@ export default function ParkingForm() {
                 طول جغرافیایی
               </label>
               <input
-                value={form.longitude}
+                value={translateNumber(form.longitude)}
                 readOnly
                 placeholder="از نقشه انتخاب کنید"
                 className="w-full px-3 py-2 rounded-lg border border-input bg-muted text-sm text-center cursor-not-allowed"
@@ -627,7 +738,7 @@ export default function ParkingForm() {
                 عرض جغرافیایی
               </label>
               <input
-                value={form.latitude}
+                value={translateNumber(form.latitude)}
                 readOnly
                 placeholder="از نقشه انتخاب کنید"
                 className="w-full px-3 py-2 rounded-lg border border-input bg-muted text-sm text-center cursor-not-allowed"
@@ -637,7 +748,6 @@ export default function ParkingForm() {
           </div>
         </div>
 
-        {/* ── Images ── */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="font-semibold text-foreground border-b border-border pb-2">
             تصاویر پارکینگ
@@ -648,7 +758,11 @@ export default function ParkingForm() {
                 key={i}
                 className="relative w-24 h-24 rounded-xl overflow-hidden border border-border group"
               >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={img.preview}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
                 <button
                   onClick={() =>
                     setImages((prev) => prev.filter((_, idx) => idx !== i))
@@ -673,103 +787,104 @@ export default function ParkingForm() {
           </div>
         </div>
 
-        {/* ── Documents ── */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="font-semibold text-foreground border-b border-border pb-2">
-            مدارک پارکینگ
+            مدارک پارکینگ <span className="text-destructive">*</span>
           </h2>
-          <div className="space-y-2">
-            {documents.map((doc, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between bg-muted rounded-lg px-3 py-2 gap-2"
-              >
+          {documentFile ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between bg-muted rounded-lg px-3 py-2 gap-2">
                 <button
-                  onClick={() =>
-                    setDocuments((prev) => prev.filter((_, idx) => idx !== i))
-                  }
+                  onClick={() => setDocumentFile(null)}
                   className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
                 >
                   <X size={16} />
                 </button>
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-sm text-foreground truncate">
-                    {doc.name}
+                    {documentFile.name}
                   </span>
-                  <img
-                    src={doc.url}
-                    alt={doc.name}
-                    className="w-10 h-10 object-cover rounded-md border border-border shrink-0"
-                  />
+                  {documentFile.url && (
+                    <img
+                      src={documentFile.url}
+                      alt={documentFile.name}
+                      className="w-10 h-10 object-cover rounded-md border border-border shrink-0"
+                    />
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+          ) : (
             <label className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border-2 border-dashed border-border cursor-pointer hover:border-primary hover:text-primary transition-colors text-muted-foreground text-sm">
               <Plus size={16} />
-              افزودن مدرک (PNG، JPG، JPEG)
+              افزودن مدرک (PNG، JPG، JPEG) - الزامی
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/jpg"
-                multiple
                 className="hidden"
                 onChange={handleDocumentUpload}
               />
             </label>
-          </div>
+          )}
         </div>
 
-        {/* ── Amenities ── */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-          <h2 className="font-semibold text-foreground border-b border-border pb-2">
-            امکانات پارکینگ
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" dir="rtl">
-            {amenityList.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => toggleAmenity(item.key as keyof Amenities)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-right ${
-                  amenities[item.key as keyof Amenities]
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/50"
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${
-                    amenities[item.key as keyof Amenities]
-                      ? "border-primary bg-primary"
-                      : "border-muted-foreground"
-                  }`}
-                >
-                  {amenities[item.key as keyof Amenities] && (
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path
-                        d="M2 6l3 3 5-5"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </div>
-                <span className="text-sm font-medium">
-                  {item.icon} {item.label}
-                </span>
-              </button>
-            ))}
+        {attributes.length > 0 && (
+          <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
+            <h2 className="font-semibold text-foreground border-b border-border pb-2">
+              امکانات پارکینگ
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" dir="rtl">
+              {attributes.map((attr) => {
+                const selected = selectedAttributeIds.includes(attr.id);
+                return (
+                  <button
+                    key={attr.id}
+                    type="button"
+                    onClick={() => toggleAttribute(attr.id)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-right ${
+                      selected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${
+                        selected
+                          ? "border-primary bg-primary"
+                          : "border-muted-foreground"
+                      }`}
+                    >
+                      {selected && (
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M2 6l3 3 5-5"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium">{attr.name}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* ── Time Slots ── */}
         <div className="space-y-3">
           {daySlots.map((daySlot, index) => (
             <div
               key={daySlot.id}
               className="bg-card border border-border rounded-2xl p-5 space-y-4"
             >
-              {/* Day header */}
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div>
                   {daySlots.length > 1 && (
@@ -795,11 +910,7 @@ export default function ParkingForm() {
                     minDate={new Date()}
                     value={daySlot.date}
                     onChange={(date: DateObject | null) => {
-                      handleDateChange(
-                        daySlot.id,
-                        date,
-                        date ? date.toString() : "",
-                      );
+                      handleDateChange(daySlot.id, date);
                     }}
                     render={(value: string, openCalendar: () => void) => (
                       <button
@@ -820,7 +931,6 @@ export default function ParkingForm() {
                 ساعت‌های فعال برای رزرو را انتخاب کنید
               </p>
 
-              {/* Hours grid */}
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                 {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
                   <button
@@ -832,12 +942,11 @@ export default function ParkingForm() {
                         : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary"
                     }`}
                   >
-                    {String(hour).padStart(2, "0")}:00
+                    {translateNumber(String(hour).padStart(2, "0") + ":00")}
                   </button>
                 ))}
               </div>
 
-              {/* Time frames */}
               {daySlot.selectedHours.length > 0 && (
                 <div className="text-right space-y-2">
                   <p className="text-sm font-medium text-foreground">
@@ -851,8 +960,9 @@ export default function ParkingForm() {
                           className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium"
                           dir="ltr"
                         >
-                          {String(frame.start).padStart(2, "0")}:00 –{" "}
-                          {String(frame.end).padStart(2, "0")}:00
+                          {translateNumber(
+                            `${String(frame.start).padStart(2, "0")}:00 – ${String(frame.end).padStart(2, "0")}:00`,
+                          )}
                         </span>
                       ),
                     )}
@@ -860,7 +970,6 @@ export default function ParkingForm() {
                 </div>
               )}
 
-              {/* Add new day button */}
               {index === daySlots.length - 1 && (
                 <button
                   onClick={addNewDay}
@@ -875,16 +984,25 @@ export default function ParkingForm() {
           ))}
         </div>
 
-        {/* ── Submit ── */}
         <div className="flex gap-3 justify-end">
           <Button
             variant="outline"
             onClick={() => navigate("/dashboard/management")}
+            disabled={submitting}
           >
             انصراف
           </Button>
-          <Button onClick={handleSubmit}>
-            {isEdit ? "ذخیره تغییرات" : "ثبت پارکینگ"}
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? (
+              <>
+                <Loader2 size={16} className="ml-2 animate-spin" />
+                در حال ذخیره...
+              </>
+            ) : isEdit ? (
+              "ذخیره تغییرات"
+            ) : (
+              "ثبت پارکینگ"
+            )}
           </Button>
         </div>
       </div>

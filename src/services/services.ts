@@ -14,7 +14,7 @@ import type {
   PutParams,
 } from "../types/apiTypes";
 
-export const baseURL = "http://194.48.198.184:8080"; // backend URL
+export const baseURL = "https://vparking.ir"; // backend URL
 
 const apiClient: AxiosInstance = axios.create({
   baseURL,
@@ -41,7 +41,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-
 export const getData = async ({ endPoint, headers, params }: GetParams) => {
   try {
     const response: AxiosResponse = await apiClient.get(endPoint, {
@@ -55,7 +54,6 @@ export const getData = async ({ endPoint, headers, params }: GetParams) => {
   }
 };
 
-
 export const postData = async ({ endPoint, data, headers }: PostParams) => {
   try {
     const response: AxiosResponse = await apiClient.post(endPoint, data, {
@@ -67,7 +65,6 @@ export const postData = async ({ endPoint, data, headers }: PostParams) => {
     throw error;
   }
 };
-
 
 export const postImageData = async ({ endPoint, data }: PostParams) => {
   try {
@@ -81,7 +78,6 @@ export const postImageData = async ({ endPoint, data }: PostParams) => {
   }
 };
 
-
 export const patchData = async ({ endPoint, data, headers }: PatchParams) => {
   try {
     const response: AxiosResponse = await apiClient.patch(endPoint, data, {
@@ -94,7 +90,6 @@ export const patchData = async ({ endPoint, data, headers }: PatchParams) => {
   }
 };
 
-
 export const putData = async ({ endPoint, data }: PutParams) => {
   try {
     const response: AxiosResponse = await apiClient.put(endPoint, data);
@@ -105,6 +100,17 @@ export const putData = async ({ endPoint, data }: PutParams) => {
   }
 };
 
+export const putImageData = async ({ endPoint, data }: PutParams) => {
+  try {
+    const response: AxiosResponse = await apiClient.put(endPoint, data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("error in putImageData", error);
+    throw error;
+  }
+};
 
 export const deleteData = async ({ endPoint, data, headers }: DeleteParams) => {
   try {
