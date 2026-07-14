@@ -18,6 +18,7 @@ import type { Bucket, Period } from "./types";
 interface RevenueChartProps {
   data: Bucket[];
   period: Period;
+  granularity?: string;
 }
 
 const chartConfig: ChartConfig = {
@@ -31,12 +32,12 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function RevenueChart({ data, period }: RevenueChartProps) {
+export function RevenueChart({ data, period, granularity }: RevenueChartProps) {
   return (
     <div className="bg-card border border-border rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3 text-sm font-medium text-foreground">
         <TrendingUp size={16} className="text-primary" />
-        نمودار درآمد بر اساس {periodLabel[period]}
+        نمودار درآمد بر اساس {granularity ?? periodLabel[period]}
       </div>
       {data.length === 0 ? (
         <div className="py-10 text-center text-sm text-muted-foreground">
@@ -82,7 +83,7 @@ export function RevenueChart({ data, period }: RevenueChartProps) {
               tickLine={false}
               axisLine={false}
               width={56}
-              tickFormatter={(v: number) => `${(v / 1000).toLocaleString("fa-IR")}k`}
+              tickFormatter={(v: number) => `${(v / 1000000).toLocaleString("fa-IR")}m`}
             />
             <ChartTooltip
               cursor={false}

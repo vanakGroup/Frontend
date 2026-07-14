@@ -1,20 +1,8 @@
-export interface TimeFrame {
-  start: number;
-  end: number;
-}
-
-export interface Reservation {
-  id: number;
-  parkingId: number;
-  reserverName: string;
-  carName: string;
-  date: Date;
-  timeFrames: TimeFrame[];
-  pricePerHour: number;
-  totalPrice: number;
-}
+export type { ReservationDTO, ReservationStatus } from "@/types/reservation";
 
 export type Period = "day" | "week" | "month" | "year";
+
+export type ChartMode = "aggregate" | "range";
 
 export interface Bucket {
   key: string;

@@ -43,7 +43,10 @@ export function VehicleCard({ vehicle, onView, onDelete }: VehicleCardProps) {
               <div className="flex items-center gap-2">
                 <span className="text-sm sm:text-md text-gray-700">پلاک:</span>
                 <span className="text-sm sm:text-md text-gray-700 font-mono tracking-wider">
-                  {vehicle.license_plate}
+                  {vehicle.license_plate.slice(3, 6)}&nbsp;
+                  {vehicle.license_plate.slice(6, 8)}&nbsp;
+                  {vehicle.license_plate.slice(2, 3)}&nbsp;
+                  {vehicle.license_plate.slice(0, 2)}&nbsp;
                 </span>
               </div>
             </div>
