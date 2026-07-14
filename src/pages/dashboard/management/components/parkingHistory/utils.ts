@@ -1,4 +1,7 @@
 import {
+  addDays,
+  addMonths,
+  addYears,
   format,
   getISOWeek,
   getISOWeekYear,
@@ -10,7 +13,7 @@ import {
 import { faIR } from "date-fns-jalali/locale/fa-IR";
 import persian_fa from "react-date-object/locales/persian_fa";
 
-import type { Period, Reservation, TimeFrame } from "./types";
+import type { Period } from "./types";
 
 export const customLocale = {
   ...persian_fa,
@@ -25,77 +28,11 @@ export const customLocale = {
   ],
 };
 
-export const mockParkingNames: Record<number, string> = {
-  1: "پارکینگ اول",
-  2: "پارکینگ دوم",
-  3: "پارکینگ سوم",
-};
-
-const reserverNames = [
-  "رضا محمدی",
-  "مریم احمدی",
-  "عی رضایی",
-  "زهرا کریمی",
-  "حسین موسوی",
-  "فاطمه نوری",
-  "محمد حسینی",
-  "سارا اکبری",
-  "امیر رستمی",
-  "نگار صادقی",
-];
-
-const carNames = [
-  "پژو ۲۰۶",
-  "پراید",
-  "سمند",
-  "دنا",
-  "هایما",
-  "کوییک",
-  "تیبا",
-  "رانا",
-];
-
 export const periodLabel: Record<Period, string> = {
   day: "روز",
   week: "هفته",
   month: "ماه",
   year: "سال",
-};
-
-export const buildMockReservations = (parkingId: number): Reservation[] => {
-  const offsets = [
-    -176, -168, -161, -150, -142, -135, -129, -121, -114, -108,
-    -99, -90, -82, -77, -71, -64, -55, -48, -40, -33,
-    -27, -21, -14, -9, -4, -1,
-    2, 5, 9, 14, 18, 23, 29, 36, 41,
-  ];
-  const timeFrameOptions: TimeFrame[][] = [
-    [{ start: 8, end: 12 }],
-    [{ start: 9, end: 13 }],
-    [{ start: 10, end: 14 }],
-    [{ start: 8, end: 12 }, { start: 15, end: 18 }],
-    [{ start: 14, end: 18 }],
-    [{ start: 7, end: 11 }],
-  ];
-  const pricePerHour = 20000 + parkingId * 5000;
-  const now = new Date();
-  return offsets.map((dayOffset, index) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() + dayOffset);
-    date.setHours(10, 0, 0, 0);
-    const frames = timeFrameOptions[index % timeFrameOptions.length];
-    const hoursCount = frames.reduce((sum, f) => sum + (f.end - f.start), 0);
-    return {
-      id: index + 1,
-      parkingId,
-      reserverName: reserverNames[index % reserverNames.length],
-      carName: carNames[index % carNames.length],
-      date,
-      timeFrames: frames,
-      pricePerHour,
-      totalPrice: hoursCount * pricePerHour,
-    };
-  });
 };
 
 export const bucketOf = (
@@ -139,7 +76,42 @@ export const bucketOf = (
 export const formatJalaliDate = (date: Date) =>
   format(date, "d MMMM yyyy", { locale: faIR });
 
-export const formatTimeFrame = (frame: TimeFrame) =>
-  `${String(frame.start).padStart(2, "0")}:00 – ${String(frame.end).padStart(2, "0")}:00`;
-
 export const formatPrice = (value: number) => value.toLocaleString("fa-IR");
+
+const TEHRAN_TIME_FORMATTER = new Intl.DateTimeFormat("fa-IR", {
+  timeZone: "Asia/Tehran",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+const formatHourMinute = (unixSeconds: number) =>
+  TEHRAN_TIME_FORMATTER.format(new Date(unixSeconds * 1000));
+
+export const formatTimeRange = (startTime: number, endTime: number) =>
+  `${formatHourMinute(startTime)} – ${formatHourMinute(endTime)}`;
+
+export const dateFromStartTime = (startTime: number) =>
+  new Date(startTime * 1000);
+
+export const statusLabel: Record<string, string> = {
+  pending: "در انتظار",
+  confirmed: "تاییدشده",
+  completed: "تکمیل‌شده",
+  cancelled: "لغوشده",
+};
+
+export const rangeEndOf = (start: Date, period: Period): Date => {
+  switch (period) {
+    case "day":
+      return addDays(start, 1);
+    case "week":
+      return addDays(start, 7);
+    case "month":
+      return addMonths(start, 1);
+    case "year":
+      return addYears(start, 1);
+    default:
+      return addDays(start, 1);
+  }
+};
