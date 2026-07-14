@@ -1,57 +1,145 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { parkingService } from "@/services/parkingService";
+import type { ParkingDetailResponse } from "@/types/parking";
+import { Button } from "@/components/ui/button";
+import { translateNumber } from "@/utils/translateNumber";
 
-// Mock data — replace with API later
-const mockSchedule: Record<
-  number,
-  {
-    date: string;
-    dayName: string;
-    timeFrames: { start: number; end: number }[];
-  }[]
-> = {
-  1: [
-    {
-      date: "1405-3-20",
-      dayName: "پنجشنبه",
-      timeFrames: [
-        { start: 8, end: 12 },
-        { start: 15, end: 18 },
-      ],
-    },
-    {
-      date: "1405-3-21",
-      dayName: "جمعه",
-      timeFrames: [{ start: 10, end: 14 }],
-    },
-  ],
-  2: [
-    {
-      date: "1405-3-20",
-      dayName: "پنجشنبه",
-      timeFrames: [{ start: 9, end: 13 }],
-    },
-  ],
-  3: [],
+interface TimeFrame {
+  start: number;
+  end: number;
+}
+
+interface GroupedSlot {
+  date: string;
+  persianDate: string;
+  dayName: string;
+  hours: number[];
+}
+
+const hoursToTimeFrames = (hours: number[]): TimeFrame[] => {
+  if (hours.length === 0) return [];
+  const sorted = [...hours].sort((a, b) => a - b);
+  const frames: TimeFrame[] = [];
+  let start = sorted[0];
+  let prev = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] === prev + 1) {
+      prev = sorted[i];
+    } else {
+      frames.push({ start, end: prev + 1 });
+      start = sorted[i];
+      prev = sorted[i];
+    }
+  }
+  frames.push({ start, end: prev + 1 });
+  return frames;
 };
 
-const mockParkingNames: Record<number, string> = {
-  1: "پارکینگ اول",
-  2: "پارکینگ دوم",
-  3: "پارکینگ سوم",
+const getPersianDayName = (dateString: string): string => {
+  const date = new Date(dateString);
+  const days = [
+    "یکشنبه",
+    "دوشنبه",
+    "سه‌شنبه",
+    "چهارشنبه",
+    "پنجشنبه",
+    "جمعه",
+    "شنبه",
+  ];
+  return days[date.getDay()];
+};
+
+const isoToPersianDate = (dateString: string): string => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return new Intl.DateTimeFormat("fa-IR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+};
+
+const groupSlotsByDate = (
+  slots: { date: string; hour: number }[],
+): GroupedSlot[] => {
+  const grouped: Record<string, number[]> = {};
+
+  slots.forEach((slot) => {
+    if (!grouped[slot.date]) {
+      grouped[slot.date] = [];
+    }
+    grouped[slot.date].push(slot.hour);
+  });
+
+  return Object.entries(grouped).map(([date, hours]) => ({
+    date,
+    persianDate: isoToPersianDate(date),
+    dayName: getPersianDayName(date),
+    hours,
+  }));
 };
 
 export default function ParkingSlots() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const parkingId = Number(id);
+  const [parking, setParking] = useState<ParkingDetailResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const schedule = mockSchedule[parkingId] ?? [];
-  const parkingName = mockParkingNames[parkingId] ?? "پارکینگ";
+  useEffect(() => {
+    if (id) {
+      loadParkingData(id);
+    }
+  }, [id]);
+
+  const loadParkingData = async (parkingId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await parkingService.getParkingDetail(parkingId);
+      setParking(data.data);
+    } catch (err) {
+      setError("خطا در بارگذاری زمان‌بندی");
+      console.error("Error loading parking:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="animate-spin text-muted-foreground" size={32} />
+      </div>
+    );
+  }
+
+  if (error || !parking) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-card border border-border rounded-2xl p-10 text-center">
+          <p className="text-muted-foreground text-sm">
+            {error || "خطا در بارگذاری اطلاعات"}
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => navigate("/dashboard/management")}
+          >
+            بازگشت
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const groupedSlots = groupSlotsByDate(parking.slots ?? []);
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate("/dashboard/management")}
@@ -61,12 +149,11 @@ export default function ParkingSlots() {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-foreground">زمان‌بندی</h1>
-          <p className="text-muted-foreground text-sm mt-1">{parkingName}</p>
+          <p className="text-muted-foreground text-sm mt-1">{parking.title}</p>
         </div>
       </div>
 
-      {/* Schedule list */}
-      {schedule.length === 0 ? (
+      {groupedSlots.length === 0 ? (
         <div className="bg-card border border-border rounded-2xl p-10 text-center">
           <p className="text-muted-foreground text-sm">
             هنوز زمان‌بندی برای این پارکینگ ثبت نشده
@@ -74,12 +161,11 @@ export default function ParkingSlots() {
         </div>
       ) : (
         <div className="space-y-4">
-          {schedule.map((day, index) => (
+          {groupedSlots.map((day, index) => (
             <div
               key={index}
               className="bg-card border border-border rounded-2xl p-5 space-y-4"
             >
-              {/* Day header */}
               <div
                 className="flex items-center justify-between border-b border-border pb-3"
                 dir="rtl"
@@ -89,48 +175,48 @@ export default function ParkingSlots() {
                     {day.dayName}
                   </span>
                   <span className="text-sm text-muted-foreground" dir="ltr">
-                    {day.date}
+                    {day.persianDate || day.date}
                   </span>
                 </div>
                 <h2 className="font-semibold text-foreground">
-                  روز {index + 1}
+                  روز {translateNumber(index + 1)}
                 </h2>
               </div>
 
-              {/* Time frames */}
               <div className="space-y-2" dir="rtl">
                 <p className="text-sm font-medium text-foreground">
                   بازه‌های زمانی فعال:
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {day.timeFrames.map((frame, i) => (
+                  {hoursToTimeFrames(day.hours).map((frame, i) => (
                     <div
                       key={i}
                       className="flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-xl px-4 py-2"
                       dir="ltr"
                     >
                       <span className="text-sm font-semibold text-primary">
-                        {String(frame.start).padStart(2, "0")}:00
+                        {translateNumber(
+                          String(frame.start).padStart(2, "0") + ":00",
+                        )}
                       </span>
                       <span className="text-muted-foreground text-xs">تا</span>
                       <span className="text-sm font-semibold text-primary">
-                        {String(frame.end).padStart(2, "0")}:00
+                        {translateNumber(
+                          String(frame.end).padStart(2, "0") + ":00",
+                        )}
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Hours visual */}
               <div className="space-y-2" dir="rtl">
                 <p className="text-sm font-medium text-foreground">
                   نمای ساعت‌ها:
                 </p>
                 <div className="grid grid-cols-6 sm:grid-cols-8 gap-1.5">
                   {Array.from({ length: 24 }, (_, i) => i).map((hour) => {
-                    const isActive = day.timeFrames.some(
-                      (f) => hour >= f.start && hour < f.end,
-                    );
+                    const isActive = day.hours.includes(hour);
                     return (
                       <div
                         key={hour}
@@ -140,7 +226,7 @@ export default function ParkingSlots() {
                             : "bg-background border-border text-muted-foreground"
                         }`}
                       >
-                        {String(hour).padStart(2, "0")}
+                        {translateNumber(String(hour).padStart(2, "0"))}
                       </div>
                     );
                   })}
