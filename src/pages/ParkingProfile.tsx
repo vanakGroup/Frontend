@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getData } from "@/services/services";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { toast } from "sonner";
 import L from "leaflet";
 import {
   MapPin,
@@ -20,8 +22,20 @@ import {
   Hash,
   Info,
   Loader2,
+  Zap,
+  Bike,
+  Truck,
+  Accessibility,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getMyVehicles } from "@/services/vehicleService";
+import type { Vehicle } from "@/services/vehicleService";
+import { createReservation } from "@/services/reservationService";
+import useUserStore from "@/store/userStore/userStore";
+import type { StaticItem } from "@/types/parking";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 // Fix leaflet icon
 const DefaultIcon = L.icon({
@@ -60,42 +74,43 @@ interface ParkingData {
   status: string;
 }
 
-// TODO: Remove this mock data once the API is fully populated
-const MOCK_FALLBACK_DATA: ParkingData = {
-  id: "1",
-  title: "پارکینگ ونک",
-  address: {
-    cityId: 1,
-    exactAddress: "تهران / میدان ونک / خیابان ولیعصر",
-    postalCode: "۱۴۳۹۷۵۶۷۸۹",
-    unitNumber: 1,
-  },
-  attributeIds: [1, 2, 3],
-  basePrice: 15000,
-  documentUrl: "",
-  imageUrls: [
-    "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800",
-    "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?w=800",
-    "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?w=800",
-  ],
-  latitude: 35.7564,
-  longitude: 51.4072,
-  slots: Array.from({ length: 24 }, (_, i) => ({
-    date: "2026-06-20",
-    hour: i,
-    id: i,
-    isBooked: Math.random() < 0.3,
-  })),
-  status: "ACTIVE",
+const PARKING_ATTRIBUTES: Record<number, string> = {
+  1: "دوربین مداربسته",
+  2: "شارژ برقی",
+  3: "موتورسیکلت",
+  4: "خودروهای سنگین",
+  5: "ویژه معلولین",
+  6: "سقف‌دار",
+};
+
+const attributeIconMap: Record<number, React.ElementType> = {
+  1: Shield, // دوربین مداربسته
+  2: Zap, // شارژ برقی
+  3: Bike, // موتورسیکلت
+  4: Truck, // خودروهای سنگین
+  5: Accessibility, // ویژه معلولین
+  6: Home, // سقف‌دار
+};
+
+const isContiguous = (hours: number[]): boolean => {
+  if (hours.length <= 1) return true;
+  const sorted = [...hours].sort((a, b) => a - b);
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] !== sorted[i - 1] + 1) return false;
+  }
+  return true;
 };
 
 export default function ParkingProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { phone } = useUserStore();
+  const isLoggedIn = !!phone;
 
   const [data, setData] = useState<ParkingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attributes, setAttributes] = useState<StaticItem[]>([]);
 
   const [currentImage, setCurrentImage] = useState(0);
   const [showReserveDialog, setShowReserveDialog] = useState(false);
@@ -105,21 +120,25 @@ export default function ParkingProfile() {
   );
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // New Dialog State
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reserveError, setReserveError] = useState<string>("");
+
   useEffect(() => {
     const fetchParking = async () => {
       try {
         setIsLoading(true);
         const fetchId = id || "1";
-        // Using base client instead of absolute URL
         const response = await getData({
-          endPoint: `/v1/parking/parkingInfo/${fetchId}`,
+          endPoint: `/v1/parking/crud/parkingDetail/${fetchId}`,
         });
-        setData(response.data);
+        setData(response.data || response);
       } catch (err) {
-        console.warn("API failed, using mock data for now", err);
-        // Fallback to mock data to keep UI visible while API has no data
-        setData(MOCK_FALLBACK_DATA);
-        // setError("خطا در دریافت اطلاعات پارکینگ");
+        console.error("API failed to get parking info:", err);
+        setError("خطا در دریافت اطلاعات پارکینگ از سرور");
       } finally {
         setIsLoading(false);
       }
@@ -128,11 +147,39 @@ export default function ParkingProfile() {
   }, [id]);
 
   useEffect(() => {
+    // Fetch attributes from API
+    getData({ endPoint: "/v1/parking/static/attributes" })
+      .then((res: any) => {
+        setAttributes(res.data || res || []);
+      })
+      .catch((err: any) => console.error("error fetching attributes:", err));
+  }, []);
+
+  useEffect(() => {
     if (isTransitioning) {
       const timer = setTimeout(() => setIsTransitioning(false), 300);
       return () => clearTimeout(timer);
     }
   }, [isTransitioning]);
+
+  // Fetch vehicles when dialog opens
+  useEffect(() => {
+    if (showReserveDialog && isLoggedIn) {
+      getMyVehicles()
+        .then(setVehicles)
+        .catch((err: any) => console.error("vehicles error:", err));
+    }
+  }, [showReserveDialog, isLoggedIn]);
+
+  // Reset dialog states when it opens
+  useEffect(() => {
+    if (showReserveDialog) {
+      setSelectedDate("");
+      setSelectedHours([]);
+      setSelectedVehicleId("");
+      setReserveError("");
+    }
+  }, [showReserveDialog]);
 
   if (isLoading) {
     return (
@@ -158,6 +205,10 @@ export default function ParkingProfile() {
     );
   }
 
+  const attributeIds = data.attributeIds || data.attribute_ids || [];
+  const imageUrls = data.imageUrls || data.image_urls || [];
+  const basePrice = data.basePrice ?? data.base_price ?? 0;
+
   const parking = {
     id: data.id,
     name: data.title || "بدون نام",
@@ -165,19 +216,14 @@ export default function ParkingProfile() {
     phone: "نامشخص", // No phone in API
     province: `شهر ${data.address?.cityId || ""}`,
     postalCode: data.address?.postalCode || "نامشخص",
-    capacity: data.slots?.length || 0,
-    pricePerHour: data.basePrice || 0,
+    capacity: (data.slots || []).length,
+    pricePerHour: basePrice,
     description: "", // No description in API
     latitude: data.latitude || 35.6892,
     longitude: data.longitude || 51.389,
-    amenities: {
-      cctv: data.attributeIds?.includes(1) || false,
-      security: data.attributeIds?.includes(2) || false,
-      covered: data.attributeIds?.includes(3) || false,
-    },
     images:
-      data.imageUrls?.length > 0
-        ? data.imageUrls
+      imageUrls.length > 0
+        ? imageUrls
         : [
             "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800",
           ],
@@ -185,18 +231,34 @@ export default function ParkingProfile() {
     reviewCount: 128,
   };
 
-  const timeSlots =
-    data.slots?.map((s) => ({
-      hour: s.hour,
-      available: !s.isBooked,
-    })) || [];
+  const slotsForDate = (data.slots || []).filter(
+    (s) => !selectedDate || s.date === selectedDate,
+  );
+
+  const isHourBooked = (hour: number): boolean => {
+    if (!selectedDate) return false;
+    return slotsForDate.some((s) => s.hour === hour && s.isBooked);
+  };
+
+  const isHourAvailable = (hour: number): boolean => {
+    if (!selectedDate) return false;
+    return slotsForDate.some((s) => s.hour === hour && !s.isBooked);
+  };
 
   const toggleHour = (hour: number) => {
-    const slot = timeSlots.find((s) => s.hour === hour);
-    if (!slot?.available) return;
-    setSelectedHours((prev) =>
-      prev.includes(hour) ? prev.filter((h) => h !== hour) : [...prev, hour],
-    );
+    if (isHourBooked(hour) || !isHourAvailable(hour)) return;
+
+    setSelectedHours((prev) => {
+      if (prev.length === 0) return [hour];
+      if (prev.includes(hour)) {
+        const newSel = prev.filter((h) => h !== hour);
+        if (!isContiguous(newSel)) return [];
+        return newSel;
+      }
+      const newSel = [...prev, hour].sort((a, b) => a - b);
+      if (!isContiguous(newSel)) return [hour];
+      return newSel;
+    });
   };
 
   const hoursToTimeFrames = (hours: number[]) => {
@@ -221,19 +283,88 @@ export default function ParkingProfile() {
   const totalPrice = selectedHours.length * parking.pricePerHour;
 
   const handleReserve = () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
     setShowReserveDialog(true);
   };
 
-  const handleConfirmReserve = () => {
-    const payload = {
-      parkingId: id,
-      timeFrames: hoursToTimeFrames(selectedHours),
-      totalPrice,
-    };
-    console.log("reserve payload:", payload);
-    setShowReserveDialog(false);
-    setSelectedHours([]);
+  const handleConfirmReserve = async () => {
+    if (!selectedDate) {
+      setReserveError("لطفا تاریخ را انتخاب کنید");
+      return;
+    }
+    if (selectedHours.length === 0) {
+      setReserveError("لطفا ساعت‌های مورد نظر را انتخاب کنید");
+      return;
+    }
+    if (!selectedVehicleId) {
+      setReserveError("لطفا خودرو را انتخاب کنید");
+      return;
+    }
+
+    const sorted = [...selectedHours].sort((a, b) => a - b);
+    const startHour = sorted[0];
+    const endHour = sorted[sorted.length - 1] + 1;
+
+    // convert to Unix timestamp
+    const baseDate = new Date(selectedDate);
+    const startTime = Math.floor(
+      new Date(
+        baseDate.getFullYear(),
+        baseDate.getMonth(),
+        baseDate.getDate(),
+        startHour,
+      ).getTime() / 1000,
+    );
+    const endTime = Math.floor(
+      new Date(
+        baseDate.getFullYear(),
+        baseDate.getMonth(),
+        baseDate.getDate(),
+        endHour,
+      ).getTime() / 1000,
+    );
+
+    setIsSubmitting(true);
+    setReserveError("");
+
+    // بعد
+    try {
+      await createReservation({
+        parking_id: data.id,
+        vehicle_id: selectedVehicleId,
+        start_time: startTime,
+        end_time: endTime,
+      });
+
+      // close dialog + reset
+      setShowReserveDialog(false);
+      setSelectedHours([]);
+      setSelectedDate("");
+      setSelectedVehicleId("");
+
+      // refresh slots بدون reload
+      const response = await getData({
+        endPoint: `/v1/parking/crud/parkingDetail/${id}`,
+      });
+      setData(response.data || response);
+      toast.success("رزرو با موفقیت انجام شد!")
+
+    } catch (err: unknown) {
+      console.error("reservation error:", err);
+      setReserveError("خطا در ثبت رزرو. لطفا دوباره تلاش کنید.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const availableDates = [
+    ...new Set((data.slots || []).map((s) => s.date)),
+  ].sort();
+  console.log("slots:", parking.slots);
+  console.log("availableDates:", availableDates);
 
   const totalImages = parking.images.length;
   const prevIndex = (currentImage - 1 + totalImages) % totalImages;
@@ -252,6 +383,15 @@ export default function ParkingProfile() {
     setIsTransitioning(true);
     setCurrentImage(prevIndex);
   };
+
+  const lat =
+    typeof parking.latitude === "number" && !isNaN(parking.latitude)
+      ? parking.latitude
+      : 35.6892;
+  const lng =
+    typeof parking.longitude === "number" && !isNaN(parking.longitude)
+      ? parking.longitude
+      : 51.389;
 
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
@@ -504,80 +644,41 @@ export default function ParkingProfile() {
           </div>
         )}
 
-        {/* ── Elegant Amenities Section with Status Dots ── */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-sm text-right">
-          <div className="flex items-center gap-2 border-b border-border pb-2.5 justify-start">
-            <Shield size={18} className="text-primary" />
-            <h2 className="font-bold text-foreground text-base">
-              امکانات امنیتی و رفاهی
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* CCTV Security Display */}
-            <div
-              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
-                parking.amenities.cctv
-                  ? "bg-primary/5 border-primary/20 shadow-sm"
-                  : "border-border bg-muted/30 opacity-60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Eye
-                  className={`h-5 w-5 ${parking.amenities.cctv ? "text-primary animate-pulse" : "text-muted-foreground"}`}
-                />
-                <span className="font-bold text-sm text-foreground">
-                  دوربین مداربسته
-                </span>
-              </div>
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.cctv ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
-              />
+        {/* ── Dynamic Amenities Section ── */}
+        {attributeIds && attributeIds.length > 0 && (
+          <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-sm text-right">
+            <div className="flex items-center gap-2 border-b border-border pb-2.5 justify-start">
+              <Shield size={18} className="text-primary" />
+              <h2 className="font-bold text-foreground text-base">
+                امکانات امنیتی و رفاهی
+              </h2>
             </div>
 
-            {/* Physical Security Guard Display */}
-            <div
-              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
-                parking.amenities.security
-                  ? "bg-primary/5 border-primary/20 shadow-sm"
-                  : "border-border bg-muted/30 opacity-60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Shield
-                  className={`h-5 w-5 ${parking.amenities.security ? "text-primary animate-pulse" : "text-muted-foreground"}`}
-                />
-                <span className="font-bold text-sm text-foreground">
-                  نگهبان مستقر
-                </span>
-              </div>
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.security ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
-              />
-            </div>
-
-            {/* Covered Roof Display */}
-            <div
-              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
-                parking.amenities.covered
-                  ? "bg-primary/5 border-primary/20 shadow-sm"
-                  : "border-border bg-muted/30 opacity-60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Home
-                  className={`h-5 w-5 ${parking.amenities.covered ? "text-primary animate-pulse" : "text-muted-foreground"}`}
-                />
-                <span className="font-bold text-sm text-foreground">
-                  محیط سقف‌دار
-                </span>
-              </div>
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.covered ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {attributeIds.map((attrId) => {
+                const attrName =
+                  attributes.find((a) => a.id === attrId)?.name ||
+                  PARKING_ATTRIBUTES[attrId];
+                if (!attrName) return null;
+                const IconComponent = attributeIconMap[attrId] || Shield;
+                return (
+                  <div
+                    key={attrId}
+                    className="p-4 rounded-xl border flex items-center justify-between transition-all duration-300 bg-primary/5 border-primary/20 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <IconComponent className="h-5 w-5 text-primary shrink-0" />
+                      <span className="font-bold text-sm text-foreground">
+                        {attrName}
+                      </span>
+                    </div>
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        )}
 
         {/* ── Original Leaflet Map── */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-3 text-right">
@@ -586,13 +687,13 @@ export default function ParkingProfile() {
           </h2>
           <div className="rounded-xl overflow-hidden border border-border h-64 relative z-0">
             <MapContainer
-              key={`${parking.latitude}-${parking.longitude}`}
-              center={[parking.latitude, parking.longitude]}
+              key={`${lat}-${lng}`}
+              center={[lat, lng]}
               zoom={15}
               style={{ height: "100%", width: "100%" }}
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <Marker position={[parking.latitude, parking.longitude]} />
+              <Marker position={[lat, lng]} />
             </MapContainer>
           </div>
           {/* Map Footer: Right-aligned text with MapPin icon on the RIGHT */}
@@ -606,12 +707,12 @@ export default function ParkingProfile() {
         </div>
       </div>
 
-      {/* ── ORIGINAL UNTOUCHED RESERVE DIALOG ── */}
+      {/* ── NEW INTEGRATED RESERVE DIALOG ── */}
       {showReserveDialog && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            {/* Dialog header */}
-            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
               <button
                 onClick={() => {
                   setShowReserveDialog(false);
@@ -627,32 +728,114 @@ export default function ParkingProfile() {
             </div>
 
             <div className="p-5 space-y-5">
-              <p className="text-sm text-muted-foreground text-right">
-                ساعت‌های مورد نظر را انتخاب کنید. ساعت‌های خاکستری رزرو شده‌اند.
-              </p>
-
-              {/* Time slots grid */}
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                {timeSlots.map((slot) => (
-                  <button
-                    key={slot.hour}
-                    onClick={() => toggleHour(slot.hour)}
-                    disabled={!slot.available}
-                    className={`py-2 rounded-lg text-sm font-medium border transition-colors ${
-                      !slot.available
-                        ? "bg-muted border-border text-muted-foreground/40 cursor-not-allowed line-through"
-                        : selectedHours.includes(slot.hour)
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary"
-                    }`}
-                  >
-                    {String(slot.hour).padStart(2, "0")}:00
-                  </button>
-                ))}
+              {/* راهنما */}
+              <div className="space-y-1 text-right">
+                <p className="text-sm text-muted-foreground">
+                  ساعت‌های مورد نظر را انتخاب کنید. ساعت‌های خاکستری رزرو
+                  شده‌اند.
+                </p>
+                <p className="text-xs text-amber-600 font-medium">
+                  ⚠️ فقط یک بازه زمانی پیوسته قابل انتخاب است
+                </p>
               </div>
 
-              {/* Legend */}
-              <div className="flex items-center gap-4 text-xs text-muted-foreground justify-end">
+              {/* انتخاب تاریخ */}
+              <div className="space-y-1.5" dir="rtl">
+                <label className="text-sm font-medium text-foreground">
+                  تاریخ رزرو
+                </label>
+                {availableDates.length > 0 ? (
+                  <select
+                    value={selectedDate}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      setSelectedHours([]);
+                    }}
+                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-right"
+                    dir="rtl"
+                  >
+                    <option value="">انتخاب تاریخ...</option>
+                    {availableDates.map((date) => (
+                      <option key={date} value={date}>
+                        {new Date(date).toLocaleDateString("fa-IR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-sm text-destructive">
+                    هیچ تاریخ فعالی وجود ندارد
+                  </p>
+                )}
+              </div>
+
+              {/* انتخاب خودرو */}
+              <div className="space-y-1.5" dir="rtl">
+                <label className="text-sm font-medium text-foreground">
+                  خودرو
+                </label>
+                {vehicles.length === 0 ? (
+                  <p className="text-sm text-destructive">
+                    هیچ خودرویی ثبت نشده —{" "}
+                    <button
+                      onClick={() => navigate("/vehicles")}
+                      className="text-primary underline"
+                    >
+                      افزودن خودرو
+                    </button>
+                  </p>
+                ) : (
+                  <select
+                    value={selectedVehicleId}
+                    onChange={(e) => setSelectedVehicleId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring text-right"
+                    dir="rtl"
+                  >
+                    <option value="">انتخاب خودرو...</option>
+                    {vehicles.map((v) => (
+                      <option key={v.id} value={String(v.id)}>
+                        {v.car_model} — {v.license_plate}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* گرید ساعت‌ها */}
+              {selectedDate && (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {Array.from({ length: 24 }, (_, i) => i).map((hour) => {
+                    const booked = isHourBooked(hour);
+                    const available = isHourAvailable(hour);
+                    const selected = selectedHours.includes(hour);
+
+                    return (
+                      <button
+                        key={hour}
+                        onClick={() => toggleHour(hour)}
+                        disabled={booked || !available}
+                        className={`py-2 rounded-lg text-sm font-medium border transition-colors ${
+                          booked
+                            ? "bg-muted border-border text-muted-foreground/40 cursor-not-allowed line-through"
+                            : !available
+                              ? "bg-muted/50 border-border text-muted-foreground/30 cursor-not-allowed"
+                              : selected
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary"
+                        }`}
+                      >
+                        {String(hour).padStart(2, "0")}:00
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* legend */}
+              <div className="flex items-center gap-4 text-xs text-muted-foreground justify-end flex-wrap">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded border border-border bg-muted opacity-40" />
                   <span>رزرو شده</span>
@@ -667,11 +850,11 @@ export default function ParkingProfile() {
                 </div>
               </div>
 
-              {/* Selected time frames */}
+              {/* بازه انتخابی + قیمت */}
               {selectedHours.length > 0 && (
                 <div className="bg-muted rounded-xl p-4 space-y-3 text-right">
                   <p className="text-sm font-medium text-foreground">
-                    بازه‌های انتخابی:
+                    بازه انتخابی:
                   </p>
                   <div className="flex flex-wrap gap-2 justify-end">
                     {hoursToTimeFrames(selectedHours).map((frame, i) => (
@@ -696,9 +879,16 @@ export default function ParkingProfile() {
                   </div>
                 </div>
               )}
+
+              {/* خطا */}
+              {reserveError && (
+                <p className="text-sm text-destructive text-right font-medium">
+                  {reserveError}
+                </p>
+              )}
             </div>
 
-            {/* Dialog footer */}
+            {/* Footer */}
             <div className="p-5 border-t border-border flex gap-3">
               <Button
                 variant="outline"
@@ -712,10 +902,10 @@ export default function ParkingProfile() {
               </Button>
               <Button
                 className="flex-1"
-                disabled={selectedHours.length === 0}
+                disabled={selectedHours.length === 0 || isSubmitting}
                 onClick={handleConfirmReserve}
               >
-                تایید رزرو
+                {isSubmitting ? "در حال ثبت..." : "تایید رزرو"}
               </Button>
             </div>
           </div>
