@@ -178,7 +178,7 @@ export default function ParkingSearchPage() {
           setParkings(formattedParkings);
           setTotalPages(resultPayload.pagination?.totalPages || 1);
 
-          if (formattedParkings.length > 0) {
+          if (currentPage === 1 && formattedParkings.length > 0) {
             const maxBasePrice = Math.max(...formattedParkings.map((p: any) => p.basePrice || 0));
             const maxInThousands = Math.ceil(maxBasePrice / 1000);
             if (maxInThousands > 0) {
