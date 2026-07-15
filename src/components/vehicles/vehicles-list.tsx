@@ -35,12 +35,13 @@ export function VehiclesList() {
     void loadVehicles();
   }, []);
 
-  const handleAdd = (data: { license_plate: string; car_model: string }) => {
-    const newVehicle: Vehicle = {
-      ...data,
-      id: Date.now().toString(),
-    };
-    setVehicles([newVehicle, ...vehicles]);
+  const handleAdd = async () => {
+    try {
+      const data = await getVehicles();
+      setVehicles(data);
+    } catch (error) {
+      console.error("Failed to reload vehicles", error);
+    }
   };
 
   const handleDeleteClick = (id: string) => {
@@ -128,7 +129,9 @@ export function VehiclesList() {
       <VehicleFormDialog
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}
-        onSave={async (data) => handleAdd(data)}
+        onSave={async () => {
+          await handleAdd();
+        }}
       />
 
       <VehicleDetailsDialog
