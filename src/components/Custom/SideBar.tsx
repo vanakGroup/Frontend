@@ -67,7 +67,7 @@ export const SideBar = ({ children }: SideBarProps) => {
         {/* Dynamic Links */}
         <div className="flex flex-col flex-1 px-3 md:mt-0">{children}</div>
 
-        {/* Toggle Panel Button */}
+        {/* Toggle Panel Button
         {role === "ADMIN" && (
           <div className="mt-auto px-3 pt-4 border-t border-border">
             <Button
@@ -80,7 +80,7 @@ export const SideBar = ({ children }: SideBarProps) => {
               </span>
             </Button>
           </div>
-        )}
+        )} */}
       </aside>
     </>
   );
