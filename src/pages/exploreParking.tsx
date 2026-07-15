@@ -74,7 +74,6 @@ export default function ParkingSearchPage() {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "none">("none");
-  const [sliderMax, setSliderMax] = useState(60);
 
   // Matches dynamic state handling from ParkingForm
   const [cities, setCities] = useState<{ id: number; name: string }[]>([]);
@@ -160,21 +159,6 @@ export default function ParkingSearchPage() {
 
           setParkings(formattedParkings);
           setTotalPages(resultPayload.pagination?.totalPages || 1);
-
-          if (currentPage === 1 && formattedParkings.length > 0) {
-            const maxBasePrice = Math.max(
-              ...formattedParkings.map((p: any) => p.basePrice || 0),
-            );
-            const maxInThousands = Math.ceil(maxBasePrice / 1000);
-            if (maxInThousands > 0) {
-              if (maxPrice >= sliderMax || maxInThousands > sliderMax) {
-                setSliderMax(maxInThousands);
-                if (maxPrice > maxInThousands || maxPrice >= sliderMax) {
-                  setMaxPrice(maxInThousands);
-                }
-              }
-            }
-          }
         } else {
           setParkings([]);
           setTotalPages(1);
@@ -444,7 +428,7 @@ export default function ParkingSearchPage() {
                 <input
                   type="range"
                   min="1"
-                  max={sliderMax}
+                  max="60"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full accent-primary cursor-pointer"
