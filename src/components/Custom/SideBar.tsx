@@ -10,7 +10,7 @@ interface SideBarProps {
 }
 
 export const SideBar = ({ children }: SideBarProps) => {
-  const { isExpanded, collapseSidebar, isAdminMode, setAdminMode } =
+  const { isExpanded, collapseSidebar, expandSidebar, isAdminMode, setAdminMode } =
     useSidebarStore();
 
   const role = useUserStore((state) => state.role);
@@ -20,7 +20,11 @@ export const SideBar = ({ children }: SideBarProps) => {
   useEffect(() => {
     const isCurrentlyAdminRoute = location.pathname.startsWith("/admin");
     setAdminMode(isCurrentlyAdminRoute);
-  }, [location.pathname, setAdminMode]);
+
+    if (location.pathname === "/dashboard") {
+      expandSidebar();
+    }
+  }, [location.pathname, setAdminMode, expandSidebar]);
 
   const handleToggleMode = () => {
     if (isAdminMode) {
@@ -47,10 +51,10 @@ export const SideBar = ({ children }: SideBarProps) => {
         className={`
           fixed top-0 right-0 h-screen z-[70] 
           bg-background border-l border-border shadow-xl
-          transition-transform duration-300 ease-in-out
+          transition-all duration-300 ease-in-out
           flex flex-col overflow-y-auto
-          w-full md:w-64 pt-0 md:pt-20 pb-4 
-          ${isExpanded ? "translate-x-0" : "translate-x-full"}
+          w-full pt-0 md:pt-20 pb-4 
+          ${isExpanded ? "translate-x-0 md:w-64" : "translate-x-full md:translate-x-0 md:w-16"}
         `}
         dir="rtl"
       >
@@ -65,7 +69,7 @@ export const SideBar = ({ children }: SideBarProps) => {
         </div>
 
         {/* Dynamic Links */}
-        <div className="flex flex-col flex-1 px-3 md:mt-0">{children}</div>
+        <div className={`flex flex-col flex-1 md:mt-0 ${isExpanded ? "px-3" : "md:px-1 px-3"}`}>{children}</div>
 
         {/* Toggle Panel Button
         {role === "ADMIN" && (
