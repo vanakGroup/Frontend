@@ -108,6 +108,7 @@ export default function ParkingSearchPage() {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "none">("none");
+  const [sliderMax, setSliderMax] = useState(60);
 
   // New state for the City Selector
   const [citySearch, setCitySearch] = useState("");
@@ -135,14 +136,14 @@ export default function ParkingSearchPage() {
     const fetchParkings = async () => {
       setIsLoading(true);
       try {
-        // Convert the ISO string date into DD-MM-YYYY for the backend
+        // Convert the ISO string date into YYYY-MM-DD for the backend
         let apiDate = undefined;
         if (date) {
           const d = new Date(date);
           const day = String(d.getDate()).padStart(2, "0");
           const month = String(d.getMonth() + 1).padStart(2, "0");
           const year = d.getFullYear();
-          apiDate = `${day}-${month}-${year}`;
+          apiDate = `${year}-${month}-${day}`;
         }
 
         const requestPayload = {
@@ -151,7 +152,7 @@ export default function ParkingSearchPage() {
           address: searchQuery || undefined,
           maxPrice: maxPrice ? maxPrice * 1000 : undefined,
           cityId: cityId || undefined,
-          date: apiDate, // Sends the formatted DD-MM-YYYY string
+          date: apiDate, // Sends the formatted YYYY-MM-DD string
           startHour: startHour !== null ? startHour : undefined,
           endHour: endHour !== null ? endHour : undefined,
           sortBy: sortOrder !== "none" ? "price" : undefined,
@@ -176,6 +177,19 @@ export default function ParkingSearchPage() {
 
           setParkings(formattedParkings);
           setTotalPages(resultPayload.pagination?.totalPages || 1);
+
+          if (formattedParkings.length > 0) {
+            const maxBasePrice = Math.max(...formattedParkings.map((p: any) => p.basePrice || 0));
+            const maxInThousands = Math.ceil(maxBasePrice / 1000);
+            if (maxInThousands > 0) {
+              if (maxPrice >= sliderMax || maxInThousands > sliderMax) {
+                setSliderMax(maxInThousands);
+                if (maxPrice > maxInThousands || maxPrice >= sliderMax) {
+                  setMaxPrice(maxInThousands);
+                }
+              }
+            }
+          }
         } else {
           setParkings([]);
           setTotalPages(1);
@@ -450,7 +464,7 @@ export default function ParkingSearchPage() {
                 <input
                   type="range"
                   min="1"
-                  max="60"
+                  max={sliderMax}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full accent-primary cursor-pointer"
