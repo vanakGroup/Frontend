@@ -135,13 +135,23 @@ export default function ParkingSearchPage() {
     const fetchParkings = async () => {
       setIsLoading(true);
       try {
+        // Convert the ISO string date into DD-MM-YYYY for the backend
+        let apiDate = undefined;
+        if (date) {
+          const d = new Date(date);
+          const day = String(d.getDate()).padStart(2, "0");
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const year = d.getFullYear();
+          apiDate = `${day}-${month}-${year}`;
+        }
+
         const requestPayload = {
           page: currentPage,
           pageSize: itemsPerPage,
           address: searchQuery || undefined,
           maxPrice: maxPrice ? maxPrice * 1000 : undefined,
           cityId: cityId || undefined,
-          date: date || undefined,
+          date: apiDate, // Sends the formatted DD-MM-YYYY string
           startHour: startHour !== null ? startHour : undefined,
           endHour: endHour !== null ? endHour : undefined,
           sortBy: sortOrder !== "none" ? "price" : undefined,
@@ -173,6 +183,7 @@ export default function ParkingSearchPage() {
       } catch (error) {
         console.error("❌ ERROR FETCHING:", error);
         setParkings([]);
+        setTotalPages(1); // Added to ensure pagination resets on 409/EOF crashes
       } finally {
         setIsLoading(false);
       }
@@ -245,7 +256,7 @@ export default function ParkingSearchPage() {
 
             <div className="mb-4">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
-                موقعیت مکانی / نام پارکینگ
+                موقعیت مکانی
               </label>
               <input
                 type="text"
@@ -334,9 +345,20 @@ export default function ParkingSearchPage() {
                   calendarPosition="bottom-right"
                   minDate={todayDate}
                   format="YYYY/MM/DD"
-                  value={date}
+                  // 1. Read: Convert the stored ISO string back to a native Gregorian JS Date.
+                  // react-multi-date-picker automatically converts JS Dates into Jalali in the calendar.
+                  value={date ? new Date(date) : null}
+                  // 2. Write: Convert the Jalali DateObject into a Gregorian ISO string using the same .toDate() method
                   onChange={(selectedDate: DateObject | null) => {
-                    setDate(selectedDate ? selectedDate.format() : null);
+                    if (
+                      selectedDate &&
+                      typeof selectedDate.toDate === "function"
+                    ) {
+                      const nativeDate = selectedDate.toDate();
+                      setDate(nativeDate.toISOString());
+                    } else {
+                      setDate(null);
+                    }
                   }}
                   render={(value: string, openCalendar: () => void) => (
                     <button

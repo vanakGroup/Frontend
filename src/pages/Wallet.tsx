@@ -283,35 +283,46 @@ export default function Wallet() {
                 </TableHeader>
                 <TableBody>
                   {transactions.map((trx) => {
-                    const isCharge =
-                      trx.type.toLowerCase() === "charge" ||
-                      trx.type.toLowerCase() === "charging";
+                    const isDeposit = trx.type.toLowerCase() === "deposit";
+                    const isGateway = trx.reason?.toLowerCase() === "gateway";
+
+                    // Determine the Persian label based on type and reason
+                    let transactionLabel = "تراکنش نامشخص";
+                    if (isDeposit) {
+                      transactionLabel = isGateway
+                        ? "شارژ حساب (درگاه)"
+                        : "دریافت وجه";
+                    } else {
+                      // Assuming non-deposits are withdrawals
+                      transactionLabel = "برداشت";
+                    }
 
                     return (
                       <TableRow key={trx.id}>
-                        {/* Apply text-right to match the headers */}
                         <TableCell className="px-4 py-3 text-right font-medium text-foreground">
                           {trx.id}
                         </TableCell>
+
                         <TableCell className="px-4 py-3 text-right text-muted-foreground">
-                          {isCharge ? "شارژ حساب" : "پرداخت"}
+                          {transactionLabel}
                         </TableCell>
+
                         <TableCell className="px-4 py-3 text-right text-muted-foreground text-sm">
                           {formatPersianDate(trx.created_at)}
                         </TableCell>
-                        {/* Keep text-left for the amount column */}
+
                         <TableCell className="px-4 py-3 text-left">
                           <div
                             className={`flex items-center justify-end gap-1 font-bold ${
-                              isCharge
-                                ? "text-green-600 dark:text-green-500"
-                                : "text-foreground"
+                              isDeposit
+                                ? "text-green-600 dark:text-green-500" // Green for all incoming money
+                                : "text-red-600 dark:text-red-500" // Red for outgoing money
                             }`}
                           >
-                            {isCharge ? (
-                              <ArrowUpRight className="h-4 w-4" />
+                            {isDeposit ? (
+                              <ArrowDownLeft className="h-4 w-4" />
                             ) : (
-                              <ArrowDownLeft className="h-4 w-4 text-muted-foreground" />
+                              <ArrowUpRight className="h-4 w-4" />
                             )}
                             {trx.amount.toLocaleString("fa-IR")}
                           </div>

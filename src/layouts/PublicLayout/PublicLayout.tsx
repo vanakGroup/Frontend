@@ -19,6 +19,7 @@ import {
   Wallet,
 } from "lucide-react";
 import Footer from "@/components/Custom/Footer";
+import useUserStore from "@/store/userStore/userStore";
 
 const PublicLayout = () => {
   const { isExpanded, isAdminMode } = useSidebarStore();
@@ -39,20 +40,21 @@ const PublicLayout = () => {
     location.pathname.startsWith(route),
   );
 
-  // const role = useUserStore((state) => state.role);
-  // const accessToken = useUserStore((state) => state.accessToken);
-  // const isLoggedIn = !!accessToken;
-  const shouldShowSidebar = isDashboardPage;
+  const role = useUserStore((state) => state.role);
+  const accessToken = useUserStore((state) => state.accessToken);
+  const isLoggedIn = !!accessToken;
+  // const shouldShowSidebar = isDashboardPage;
+  const shouldShowSidebar = isLoggedIn;
 
   const mainNavLinks = [
     { label: "صفحه اصلی", to: "/", icon: <Home size={18} /> },
     { label: "درباره ما", to: "/aboutus", icon: <Info size={18} /> },
     { label: "تماس با ما", to: "/contactus", icon: <Phone size={18} /> },
-    { label: "مشاهده پارکینگ ها", to: "/parking" },
+    { label: "پارکینگ ها", to: "/parking" },
   ];
 
   const userDashboardLinks = [
-    { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
+    // { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
     {
       label: "پارکینگ های من",
       to: "/dashboard/management",

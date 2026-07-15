@@ -71,14 +71,18 @@ export default function OTPStep({
           if (profileRes && profileRes.statusCode === 200) {
             const userData = profileRes.data;
             if (userData && (userData.first_name || userData.last_name)) {
-              useUserStore.getState().setUsername(`${userData.first_name || ""} ${userData.last_name || ""}`.trim());
+              useUserStore
+                .getState()
+                .setUsername(
+                  `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
+                );
             }
           }
         } catch (e) {
           console.error("Failed to fetch profile during login", e);
         }
 
-        Navigate("/blank");
+        Navigate("/dashboard/management");
         console.log("Login successful");
       } catch (error) {
         console.error("Login failed:", error);
@@ -226,8 +230,9 @@ export default function OTPStep({
               type="submit"
               disabled={formik.isSubmitting}
               className="w-full text-white h-10 mt-4"
+              dir="rtl"
             >
-              {formik.isSubmitting ? "در حال بررسی کد..." : "تایید"}
+              {formik.isSubmitting ? "در حال بررسی کد تایید ..." : "تایید"}
             </Button>
 
             <div className="text-center">
