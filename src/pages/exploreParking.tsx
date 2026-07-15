@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParkingStore } from "@/store/parkingStore/parkingStore";
 import { searchParkingService } from "@/services/searchService";
+import { parkingService } from "@/services/parkingService"; // <-- Added to fetch cities dynamically
 import {
   Card,
   CardHeader,
@@ -11,10 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { parkingService } from "@/services/parkingService";
-import type { StaticItem } from "@/types/parking";
+import DatePicker, { DateObject } from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
-const FALLBACK_IMAGE = "/noimage.jpeg";
+const FALLBACK_IMAGE = "/no_image.svg";
 
 const PARKING_ATTRIBUTES: Record<number, string> = {
   1: "سقف دار",
@@ -74,32 +76,29 @@ export default function ParkingSearchPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "none">("none");
   const [sliderMax, setSliderMax] = useState(60);
 
-  // State for loaded cities list
-  const [cities, setCities] = useState<StaticItem[]>([]);
-  // New state for the City Selector
+  // Matches dynamic state handling from ParkingForm
+  const [cities, setCities] = useState<{ id: number; name: string }[]>([]);
   const [citySearch, setCitySearch] = useState("");
   const [showCityList, setShowCityList] = useState(false);
 
-  // Fetch cities list dynamically from the backend on mount
+  // Fetch dynamic cities from the backend on mount
   useEffect(() => {
-    const loadCities = async () => {
+    const fetchCities = async () => {
       try {
-        const res = await parkingService.getCities();
-        if (res?.data) {
-          setCities(res.data);
-        }
-      } catch (err) {
-        console.error("Failed to load cities in explore page:", err);
+        const response = await parkingService.getCities();
+        setCities(response.data ?? []);
+      } catch (error) {
+        console.error("Error fetching cities:", error);
       }
     };
-    loadCities();
+    fetchCities();
   }, []);
 
   // Sync citySearch input with the cityId from the store (handles "clear all" resets)
   useEffect(() => {
     if (!cityId) {
       setCitySearch("");
-    } else {
+    } else if (cities.length > 0) {
       const selectedCity = cities.find((c) => c.id === cityId);
       if (selectedCity) setCitySearch(selectedCity.name);
     }
@@ -107,9 +106,13 @@ export default function ParkingSearchPage() {
 
   const filteredCities = cities.filter((c) => c.name.includes(citySearch));
 
-  const handleCitySelect = (id: number, name: string) => {
-    setCityId(id);
-    setCitySearch(name);
+  // Signature updated to match ParkingForm's implementation
+  const handleCitySelect = (
+    selectedCityId: number,
+    selectedCityName: string,
+  ) => {
+    setCityId(selectedCityId);
+    setCitySearch(selectedCityName);
     setShowCityList(false);
   };
 
@@ -117,7 +120,6 @@ export default function ParkingSearchPage() {
     const fetchParkings = async () => {
       setIsLoading(true);
       try {
-        // Convert the ISO string date into YYYY-MM-DD for the backend
         let apiDate = undefined;
         if (date) {
           const d = new Date(date);
@@ -133,7 +135,7 @@ export default function ParkingSearchPage() {
           address: searchQuery || undefined,
           maxPrice: maxPrice ? maxPrice * 1000 : undefined,
           cityId: cityId || undefined,
-          date: apiDate, // Sends the formatted YYYY-MM-DD string
+          date: apiDate,
           startHour: startHour !== null ? startHour : undefined,
           endHour: endHour !== null ? endHour : undefined,
           sortBy: sortOrder !== "none" ? "price" : undefined,
@@ -160,7 +162,9 @@ export default function ParkingSearchPage() {
           setTotalPages(resultPayload.pagination?.totalPages || 1);
 
           if (currentPage === 1 && formattedParkings.length > 0) {
-            const maxBasePrice = Math.max(...formattedParkings.map((p: any) => p.basePrice || 0));
+            const maxBasePrice = Math.max(
+              ...formattedParkings.map((p: any) => p.basePrice || 0),
+            );
             const maxInThousands = Math.ceil(maxBasePrice / 1000);
             if (maxInThousands > 0) {
               if (maxPrice >= sliderMax || maxInThousands > sliderMax) {
@@ -178,7 +182,7 @@ export default function ParkingSearchPage() {
       } catch (error) {
         console.error("❌ ERROR FETCHING:", error);
         setParkings([]);
-        setTotalPages(1); // Added to ensure pagination resets on 409/EOF crashes
+        setTotalPages(1);
       } finally {
         setIsLoading(false);
       }
@@ -287,11 +291,11 @@ export default function ParkingSearchPage() {
                     setCitySearch(e.target.value);
                     setShowCityList(true);
                     if (e.target.value === "") {
-                      setCityId(null);
+                      setCityId(null); // Allow resetting via clearing text
                     }
                   }}
                   onFocus={() => setShowCityList(true)}
-                  onBlur={() => setTimeout(() => setShowCityList(false), 200)}
+                  onBlur={() => setTimeout(() => setShowCityList(false), 150)} // Matches ParkingForm timeout
                   placeholder="جستجوی شهر..."
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring text-right"
                   dir="rtl"
@@ -303,7 +307,6 @@ export default function ParkingSearchPage() {
                         key={city.id}
                         type="button"
                         onMouseDown={(e) => {
-                          // Prevent input onBlur from firing before the click registers
                           e.preventDefault();
                           handleCitySelect(city.id, city.name);
                         }}
@@ -322,7 +325,6 @@ export default function ParkingSearchPage() {
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
                     تاریخ رزرو
                   </label>
-                  {/* Show "پاک کردن" only if a date is selected */}
                   {date && (
                     <button
                       type="button"
@@ -340,10 +342,7 @@ export default function ParkingSearchPage() {
                   calendarPosition="bottom-right"
                   minDate={todayDate}
                   format="YYYY/MM/DD"
-                  // 1. Read: Convert the stored ISO string back to a native Gregorian JS Date.
-                  // react-multi-date-picker automatically converts JS Dates into Jalali in the calendar.
                   value={date ? new Date(date) : null}
-                  // 2. Write: Convert the Jalali DateObject into a Gregorian ISO string using the same .toDate() method
                   onChange={(selectedDate: DateObject | null) => {
                     if (
                       selectedDate &&
@@ -467,59 +466,49 @@ export default function ParkingSearchPage() {
               </div>
             ) : parkings.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-center items-stretch">
-                {parkings.map((parking) => {
-                  const cityName = cities.find((c) => c.id === parking.address?.cityId)?.name;
-                  return (
-                    <Card
-                      key={parking.id}
-                      className="flex flex-col justify-between shadow-sm hover:shadow-md transition-all border-border bg-card text-card-foreground overflow-hidden"
-                    >
-                      <div className="relative w-full h-48 bg-muted shrink-0">
-                        <img
-                          src={parking.imageUrls?.[0] || FALLBACK_IMAGE}
-                          alt={parking.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = FALLBACK_IMAGE;
-                            e.currentTarget.onerror = null;
-                          }}
-                        />
+                {parkings.map((parking) => (
+                  <Card
+                    key={parking.id}
+                    className="flex flex-col justify-between shadow-sm hover:shadow-md transition-all border-border bg-card text-card-foreground overflow-hidden"
+                  >
+                    <div className="relative w-full h-48 bg-muted shrink-0">
+                      <img
+                        src={parking.imageUrls?.[0] || FALLBACK_IMAGE}
+                        alt={parking.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = FALLBACK_IMAGE;
+                          e.currentTarget.onerror = null;
+                        }}
+                      />
+                    </div>
+
+                    <CardHeader className="pb-4 pt-5">
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <CardTitle className="text-lg font-bold line-clamp-1">
+                          {parking.title}
+                        </CardTitle>
                       </div>
+                      <CardDescription className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                        {parking.address?.exactAddress || "بدون آدرس"}
+                      </CardDescription>
+                    </CardHeader>
 
-                      <CardHeader className="pb-4 pt-5">
-                        <div className="flex justify-between items-start gap-2 mb-2">
-                          <CardTitle className="text-lg font-bold line-clamp-1">
-                            {parking.title}
-                          </CardTitle>
-                        </div>
-                        <CardDescription className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-                          {cityName ? `${cityName}، ` : ""}{parking.address?.exactAddress || "بدون آدرس"}
-                        </CardDescription>
-                      </CardHeader>
-
-                      <CardContent className="pb-5 space-y-3 text-sm text-muted-foreground flex-grow">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">وضعیت:</span>
-                          <span className="font-semibold text-foreground">
-                            {parking.status === "ACTIVE"
-                              ? "فعال"
-                              : parking.status}
-                          </span>
-                        </div>
-                        {cityName && (
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">شهر:</span>
-                            <span className="font-semibold text-foreground">
-                              {cityName}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex justify-between items-start">
-                          <span className="font-medium">روزهای کاری:</span>
-                          <span className="font-semibold text-foreground text-right max-w-[70%] line-clamp-1">
-                            همه روزه
-                          </span>
-                        </div>
+                    <CardContent className="pb-5 space-y-3 text-sm text-muted-foreground flex-grow">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">وضعیت:</span>
+                        <span className="font-semibold text-foreground">
+                          {parking.status === "ACTIVE"
+                            ? "فعال"
+                            : parking.status}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-start">
+                        <span className="font-medium">روزهای کاری:</span>
+                        <span className="font-semibold text-foreground text-right max-w-[70%] line-clamp-1">
+                          همه روزه
+                        </span>
+                      </div>
 
                       {/* Attributes Section */}
                       {parking.attributeIds &&
@@ -566,8 +555,7 @@ export default function ParkingSearchPage() {
                       </Button>
                     </CardFooter>
                   </Card>
-                );
-              })}
+                ))}
               </div>
             ) : (
               <div className="text-center py-20 bg-card rounded-xl border border-border w-full">
