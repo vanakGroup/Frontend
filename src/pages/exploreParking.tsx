@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParkingStore } from "@/store/parkingStore/parkingStore";
 import { searchParkingService } from "@/services/searchService";
+import { parkingService } from "@/services/parkingService"; // <-- Added to fetch cities dynamically
 import {
   Card,
   CardHeader,
@@ -16,41 +17,6 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
 const FALLBACK_IMAGE = "/no_image.svg";
-
-// Mapped array to translate city names to backend IDs
-const CITIES = [
-  { id: 1, name: "تهران" },
-  { id: 2, name: "اصفهان" },
-  { id: 3, name: "شیراز" },
-  { id: 4, name: "مشهد" },
-  { id: 5, name: "تبریز" },
-  { id: 6, name: "ارومیه" },
-  { id: 7, name: "اردبیل" },
-  { id: 8, name: "کرج" },
-  { id: 9, name: "ایلام" },
-  { id: 10, name: "بوشهر" },
-  { id: 11, name: "شهرکرد" },
-  { id: 12, name: "بیرجند" },
-  { id: 13, name: "بجنورد" },
-  { id: 14, name: "اهواز" },
-  { id: 15, name: "زنجان" },
-  { id: 16, name: "سمنان" },
-  { id: 17, name: "زاهدان" },
-  { id: 18, name: "قزوین" },
-  { id: 19, name: "قم" },
-  { id: 20, name: "سنندج" },
-  { id: 21, name: "کرمان" },
-  { id: 22, name: "کرمانشاه" },
-  { id: 23, name: "یاسوج" },
-  { id: 24, name: "گرگان" },
-  { id: 25, name: "رشت" },
-  { id: 26, name: "خرم‌آباد" },
-  { id: 27, name: "ساری" },
-  { id: 28, name: "اراک" },
-  { id: 29, name: "بندرعباس" },
-  { id: 30, name: "همدان" },
-  { id: 31, name: "یزد" },
-];
 
 const PARKING_ATTRIBUTES: Record<number, string> = {
   1: "سقف دار",
@@ -108,27 +74,44 @@ export default function ParkingSearchPage() {
 
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "none">("none");
-  const [sliderMax, setSliderMax] = useState(60);
 
-  // New state for the City Selector
+  // Matches dynamic state handling from ParkingForm
+  const [cities, setCities] = useState<{ id: number; name: string }[]>([]);
   const [citySearch, setCitySearch] = useState("");
   const [showCityList, setShowCityList] = useState(false);
+
+  // Fetch dynamic cities from the backend on mount
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await parkingService.getCities();
+        setCities(response.data ?? []);
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+      }
+    };
+    fetchCities();
+  }, []);
 
   // Sync citySearch input with the cityId from the store (handles "clear all" resets)
   useEffect(() => {
     if (!cityId) {
       setCitySearch("");
-    } else {
-      const selectedCity = CITIES.find((c) => c.id === cityId);
+    } else if (cities.length > 0) {
+      const selectedCity = cities.find((c) => c.id === cityId);
       if (selectedCity) setCitySearch(selectedCity.name);
     }
-  }, [cityId]);
+  }, [cityId, cities]);
 
-  const filteredCities = CITIES.filter((c) => c.name.includes(citySearch));
+  const filteredCities = cities.filter((c) => c.name.includes(citySearch));
 
-  const handleCitySelect = (city: { id: number; name: string }) => {
-    setCityId(city.id);
-    setCitySearch(city.name);
+  // Signature updated to match ParkingForm's implementation
+  const handleCitySelect = (
+    selectedCityId: number,
+    selectedCityName: string,
+  ) => {
+    setCityId(selectedCityId);
+    setCitySearch(selectedCityName);
     setShowCityList(false);
   };
 
@@ -136,7 +119,6 @@ export default function ParkingSearchPage() {
     const fetchParkings = async () => {
       setIsLoading(true);
       try {
-        // Convert the ISO string date into YYYY-MM-DD for the backend
         let apiDate = undefined;
         if (date) {
           const d = new Date(date);
@@ -152,7 +134,7 @@ export default function ParkingSearchPage() {
           address: searchQuery || undefined,
           maxPrice: maxPrice ? maxPrice * 1000 : undefined,
           cityId: cityId || undefined,
-          date: apiDate, // Sends the formatted YYYY-MM-DD string
+          date: apiDate,
           startHour: startHour !== null ? startHour : undefined,
           endHour: endHour !== null ? endHour : undefined,
           sortBy: sortOrder !== "none" ? "price" : undefined,
@@ -177,19 +159,6 @@ export default function ParkingSearchPage() {
 
           setParkings(formattedParkings);
           setTotalPages(resultPayload.pagination?.totalPages || 1);
-
-          if (currentPage === 1 && formattedParkings.length > 0) {
-            const maxBasePrice = Math.max(...formattedParkings.map((p: any) => p.basePrice || 0));
-            const maxInThousands = Math.ceil(maxBasePrice / 1000);
-            if (maxInThousands > 0) {
-              if (maxPrice >= sliderMax || maxInThousands > sliderMax) {
-                setSliderMax(maxInThousands);
-                if (maxPrice > maxInThousands || maxPrice >= sliderMax) {
-                  setMaxPrice(maxInThousands);
-                }
-              }
-            }
-          }
         } else {
           setParkings([]);
           setTotalPages(1);
@@ -197,7 +166,7 @@ export default function ParkingSearchPage() {
       } catch (error) {
         console.error("❌ ERROR FETCHING:", error);
         setParkings([]);
-        setTotalPages(1); // Added to ensure pagination resets on 409/EOF crashes
+        setTotalPages(1);
       } finally {
         setIsLoading(false);
       }
@@ -306,11 +275,11 @@ export default function ParkingSearchPage() {
                     setCitySearch(e.target.value);
                     setShowCityList(true);
                     if (e.target.value === "") {
-                      setCityId(null);
+                      setCityId(null); // Allow resetting via clearing text
                     }
                   }}
                   onFocus={() => setShowCityList(true)}
-                  onBlur={() => setTimeout(() => setShowCityList(false), 200)}
+                  onBlur={() => setTimeout(() => setShowCityList(false), 150)} // Matches ParkingForm timeout
                   placeholder="جستجوی شهر..."
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring text-right"
                   dir="rtl"
@@ -322,9 +291,8 @@ export default function ParkingSearchPage() {
                         key={city.id}
                         type="button"
                         onMouseDown={(e) => {
-                          // Prevent input onBlur from firing before the click registers
                           e.preventDefault();
-                          handleCitySelect(city);
+                          handleCitySelect(city.id, city.name);
                         }}
                         className="w-full text-right px-3 py-2 text-sm hover:bg-accent transition-colors"
                       >
@@ -341,7 +309,6 @@ export default function ParkingSearchPage() {
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
                     تاریخ رزرو
                   </label>
-                  {/* Show "پاک کردن" only if a date is selected */}
                   {date && (
                     <button
                       type="button"
@@ -359,10 +326,7 @@ export default function ParkingSearchPage() {
                   calendarPosition="bottom-right"
                   minDate={todayDate}
                   format="YYYY/MM/DD"
-                  // 1. Read: Convert the stored ISO string back to a native Gregorian JS Date.
-                  // react-multi-date-picker automatically converts JS Dates into Jalali in the calendar.
                   value={date ? new Date(date) : null}
-                  // 2. Write: Convert the Jalali DateObject into a Gregorian ISO string using the same .toDate() method
                   onChange={(selectedDate: DateObject | null) => {
                     if (
                       selectedDate &&
@@ -464,7 +428,7 @@ export default function ParkingSearchPage() {
                 <input
                   type="range"
                   min="1"
-                  max={sliderMax}
+                  max="60"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full accent-primary cursor-pointer"
