@@ -15,7 +15,7 @@ import DatePicker, { DateObject } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
-const FALLBACK_IMAGE = "/no_image.svg";
+const FALLBACK_IMAGE = "/noimage.jpeg";
 
 // Mapped array to translate city names to backend IDs
 const CITIES = [
