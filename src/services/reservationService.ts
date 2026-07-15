@@ -1,7 +1,14 @@
-import { getData, postData } from "./services";
+import { getData, postData } from "@/services/services";
 import CustomToast from "@/components/Custom/CustomToast";
 import type { ReservationDTO } from "@/types/reservation";
 import type { Response } from "./parkingService";
+
+interface ReservationPayload {
+  parking_id: string;
+  vehicle_id: string;
+  start_time: number;
+  end_time: number;
+}
 
 function extractApiError(error: unknown): string {
   const message = (error as { response?: { data?: { message?: unknown } } })
@@ -23,6 +30,13 @@ function extractApiError(error: unknown): string {
 
   return "خطا در ارتباط با سرور";
 }
+
+export const createReservation = async (payload: ReservationPayload) => {
+  return await postData({
+    endPoint: "/v1/reservation",
+    data: payload,
+  });
+};
 
 export const reservationService = {
   async getParkingReservations(
