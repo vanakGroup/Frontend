@@ -63,7 +63,7 @@ interface ParkingData {
   imageUrls: string[];
   latitude: number;
   longitude: number;
-  slots: Slot[];
+  slots?: Slot[]; // امن‌سازی اسلات‌ها (اختیاری کردن برای ممانعت از خطا در صورت عدم وجود فیلد)
   status: string;
 }
 
@@ -136,7 +136,7 @@ export default function ParkingProfile() {
   // fetch parking info
   useEffect(() => {
     if (!id) return;
-    getData({ endPoint: `/v1/parking/parkingInfo/${id}` })
+    getData({ endPoint: `/v1/Generalparking/info/${id}` })
       .then((res: any) => {
         setParking(res.data || res);
       })
@@ -179,8 +179,8 @@ export default function ParkingProfile() {
     );
   }
 
-  // slots for selected date
-  const slotsForDate = parking.slots.filter(
+  // slots for selected date — امن‌سازی با Optional Chaining
+  const slotsForDate = (parking.slots || []).filter(
     (s) => !selectedDate || s.date === selectedDate,
   );
 
@@ -280,8 +280,8 @@ export default function ParkingProfile() {
     }
   };
 
-  // all unique dates from slots
-  const availableDates = [...new Set(parking.slots.map((s) => s.date))].sort();
+  // all unique dates from slots — امن‌سازی با Optional Chaining
+  const availableDates = [...new Set((parking.slots || []).map((s) => s.date))].sort();
 
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
