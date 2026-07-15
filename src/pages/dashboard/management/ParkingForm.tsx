@@ -9,6 +9,7 @@ import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { parkingService } from "@/services/parkingService";
+import { baseURL } from "@/services/services";
 import type { ParkingDetailResponse, StaticItem } from "@/types/parking";
 import CustomToast from "@/components/Custom/CustomToast";
 import { translateNumber } from "@/utils/translateNumber";
@@ -105,7 +106,10 @@ const fetchUrlAsFile = async (
   filename: string,
 ): Promise<File | null> => {
   try {
-    const res = await fetch(url);
+    const finalUrl = url.startsWith("/") && !url.startsWith("http")
+      ? `${baseURL}${url}`
+      : url;
+    const res = await fetch(finalUrl);
     if (!res.ok) return null;
     const blob = await res.blob();
     return new File([blob], filename, { type: blob.type || "image/png" });
@@ -299,21 +303,18 @@ export default function ParkingForm() {
     }
 
     if (parking.imageUrls && parking.imageUrls.length > 0) {
-      const fetched = await Promise.all(
-        parking.imageUrls.map((url, i) =>
-          fetchUrlAsFile(url, `image-${i}`).then((file) => ({ url, file, i })),
-        ),
-      );
       setImages(
-        fetched
-          .filter((x): x is { url: string; file: File; i: number } => !!x.file)
-          .map(({ file, url }) => ({ file, preview: url })),
+        parking.imageUrls.map((url) => ({
+          file: null as any,
+          preview: url,
+        })),
       );
     }
 
     if (parking.documentUrl) {
+      const docFile = await fetchUrlAsFile(parking.documentUrl, "document.png");
       setDocumentFile({
-        file: null as any, // نیازی به دانلود فایل واقعی نیست، فقط برای نمایش آدرسش رو می‌خوایم
+        file: docFile as any,
         name: "مدرک بارگذاری‌شده قبلی",
         url: parking.documentUrl,
       });
@@ -468,11 +469,11 @@ export default function ParkingForm() {
 
     formData.append("slots", JSON.stringify(slots));
 
-    if (documentFile && documentFile.file.size > 0) {
+    if (documentFile && documentFile.file && documentFile.file.size > 0) {
       formData.append("documentFile", documentFile.file);
     }
 
-    const newImages = images.filter((img) => img.file.size > 0);
+    const newImages = images.filter((img) => img.file && img.file.size > 0);
     newImages.forEach((img) => {
       formData.append("images", img.file);
     });
