@@ -174,7 +174,7 @@ export default function ParkingSlots() {
                   <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">
                     {day.dayName}
                   </span>
-                  <span className="text-sm text-muted-foreground" dir="ltr">
+                  <span className="text-sm text-muted-foreground" dir="rtl">
                     {day.persianDate || day.date}
                   </span>
                 </div>
