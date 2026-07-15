@@ -21,7 +21,7 @@ export const MobileNavBar = () => {
 
       <div className="flex items-center gap-2">
         <NavLink
-          to="/parkings"
+          to="/parking"
           className={({ isActive }) =>
             `text-sm font-semibold px-3 py-2 rounded-lg ${isActive ? "text-primary bg-primary/10" : "text-muted-foreground"}`
           }

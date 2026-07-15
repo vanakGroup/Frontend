@@ -708,7 +708,7 @@ export default function ParkingForm() {
             </p>
           </div>
 
-          <div className="rounded-xl overflow-hidden border border-border h-64">
+          <div className="rounded-xl overflow-hidden border border-border h-64 relative z-0">
             <MapContainer
               center={[35.6892, 51.389]}
               zoom={11}

@@ -11,7 +11,7 @@ export default function Login() {
   const accessToken = useUserStore((state) => state.accessToken);
 
   if (accessToken) {
-    return <Navigate to="/dashboard/management" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

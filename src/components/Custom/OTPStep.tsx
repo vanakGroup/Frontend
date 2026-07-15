@@ -23,7 +23,7 @@ import { loginService } from "@/services/authService";
 import CustomToast from "@/components/Custom/CustomToast";
 import { useNavigate } from "react-router-dom";
 
-const TIMER_START = 5;
+const TIMER_START = 120;
 
 export default function OTPStep({
   phoneNumber,
@@ -82,7 +82,7 @@ export default function OTPStep({
           console.error("Failed to fetch profile during login", e);
         }
 
-        Navigate("/dashboard/management");
+        Navigate("/dashboard");
         console.log("Login successful");
       } catch (error) {
         console.error("Login failed:", error);
