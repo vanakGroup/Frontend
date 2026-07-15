@@ -84,7 +84,12 @@ function convertDigitsToEnglish(str: string): string {
 
 export default function UserProfile() {
   const navigate = useNavigate();
-  const { phone: storePhone, accessToken, clearAuth, setUsername } = useUserStore();
+  const {
+    phone: storePhone,
+    accessToken,
+    clearAuth,
+    setUsername,
+  } = useUserStore();
 
   const [profile, setProfile] = useState<SwaggerUserData>({
     first_name: "",
@@ -110,7 +115,9 @@ export default function UserProfile() {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        const result: SwaggerGetReponse = await getData({ endPoint: "/v1/profile" });
+        const result: SwaggerGetReponse = await getData({
+          endPoint: "/v1/profile",
+        });
 
         if (result.statusCode === 200) {
           // If profile returned phone is empty, fallback to token-level phone
@@ -118,12 +125,17 @@ export default function UserProfile() {
           if (!userData.phone) {
             userData.phone = storePhone || "";
           }
-          if (userData.shaba_number && userData.shaba_number.toUpperCase().startsWith("IR")) {
+          if (
+            userData.shaba_number &&
+            userData.shaba_number.toUpperCase().startsWith("IR")
+          ) {
             userData.shaba_number = userData.shaba_number.substring(2);
           }
           setProfile(userData);
           if (userData.first_name || userData.last_name) {
-            setUsername(`${userData.first_name || ""} ${userData.last_name || ""}`.trim());
+            setUsername(
+              `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
+            );
           }
         } else if (result.statusCode === 401) {
           clearAuth();
@@ -213,7 +225,10 @@ export default function UserProfile() {
         shaba_number: cleanShaba,
       };
 
-      const result: SwaggerPutResponse = await putData({ endPoint: "/v1/profile", data: payload });
+      const result: SwaggerPutResponse = await putData({
+        endPoint: "/v1/profile",
+        data: payload,
+      });
 
       if (result.statusCode === 200) {
         setSuccessMessage("اطلاعات پروفایل شما با موفقیت به‌روزرسانی شد.");

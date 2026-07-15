@@ -312,14 +312,11 @@ export default function ParkingForm() {
     }
 
     if (parking.documentUrl) {
-      const docFile = await fetchUrlAsFile(parking.documentUrl, "document");
-      if (docFile) {
-        setDocumentFile({
-          file: docFile,
-          name: "مدرک موجود",
-          url: parking.documentUrl,
-        });
-      }
+      setDocumentFile({
+        file: null as any, // نیازی به دانلود فایل واقعی نیست، فقط برای نمایش آدرسش رو می‌خوایم
+        name: "مدرک بارگذاری‌شده قبلی",
+        url: parking.documentUrl,
+      });
     }
 
     const slotsByDate: Record<string, number[]> = {};
@@ -793,25 +790,39 @@ export default function ParkingForm() {
           </h2>
           {documentFile ? (
             <div className="space-y-2">
-              <div className="flex items-center justify-between bg-muted rounded-lg px-3 py-2 gap-2">
-                <button
-                  onClick={() => setDocumentFile(null)}
-                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                >
-                  <X size={16} />
-                </button>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm text-foreground truncate">
-                    {documentFile.name}
-                  </span>
-                  {documentFile.url && (
+              <div
+                className="relative flex items-center justify-between bg-muted rounded-lg p-2 min-h-[56px]"
+                dir="rtl"
+              >
+                {/* بخش تصویر یا آیکون مدرک (سمت راست) */}
+                <div className="w-10 h-10 rounded-md border border-border bg-background flex items-center justify-center overflow-hidden shrink-0 z-10">
+                  {documentFile.url ? (
                     <img
                       src={documentFile.url}
                       alt={documentFile.name}
-                      className="w-10 h-10 object-cover rounded-md border border-border shrink-0"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // اگر عکس لود نشد، تصویر مخفی بشه تا آیکون زاپاس دیده بشه
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
+                  ) : (
+                    <FileText size={18} className="text-muted-foreground" />
                   )}
                 </div>
+
+                {/* متن مدرک که کاملاً وسط‌چین شده است */}
+                <span className="absolute inset-x-0 text-center text-sm text-foreground font-medium truncate px-16 pointer-events-none">
+                  {documentFile.name}
+                </span>
+
+                {/* دکمه حذف مدرک (سمت چپ) */}
+                <button
+                  onClick={() => setDocumentFile(null)}
+                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0 z-10 p-1.5 rounded-md hover:bg-background/50"
+                >
+                  <X size={16} />
+                </button>
               </div>
             </div>
           ) : (
@@ -899,7 +910,7 @@ export default function ParkingForm() {
 
                 <div className="flex items-center gap-3" dir="rtl">
                   {daySlot.dayName && (
-                    <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">
+                    <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full text-center">
                       {daySlot.dayName}
                     </span>
                   )}
@@ -908,7 +919,7 @@ export default function ParkingForm() {
                     locale={customLocale}
                     calendarPosition="bottom-right"
                     minDate={new Date()}
-                    value={daySlot.date}
+                    value={daySlot.dateISO}
                     onChange={(date: DateObject | null) => {
                       handleDateChange(daySlot.id, date);
                     }}
@@ -916,7 +927,7 @@ export default function ParkingForm() {
                       <button
                         type="button"
                         onClick={openCalendar}
-                        className="px-3 py-1.5 rounded-lg border border-input bg-background text-sm text-foreground hover:border-primary transition-colors min-w-[120px] text-right"
+                        className="flex items-center justify-center px-3 py-1.5 rounded-lg border border-input bg-background text-sm text-foreground hover:border-primary transition-colors min-w-[120px] text-center"
                         dir="rtl"
                       >
                         {value || "انتخاب تاریخ"}
