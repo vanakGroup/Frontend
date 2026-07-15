@@ -20,12 +20,17 @@ import {
   Hash,
   Info,
   Loader2,
+  Zap,
+  Bike,
+  Truck,
+  Accessibility,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getMyVehicles } from "@/services/vehicleService";
 import type { Vehicle } from "@/services/vehicleService";
 import { createReservation } from "@/services/reservationService";
 import useUserStore from "@/store/userStore/userStore";
+import type { StaticItem } from "@/types/parking";
 
 // Fix leaflet icon
 const DefaultIcon = L.icon({
@@ -64,33 +69,22 @@ interface ParkingData {
   status: string;
 }
 
-// TODO: Remove this mock data once the API is fully populated
-const MOCK_FALLBACK_DATA: ParkingData = {
-  id: "1",
-  title: "پارکینگ ونک",
-  address: {
-    cityId: 1,
-    exactAddress: "تهران / میدان ونک / خیابان ولیعصر",
-    postalCode: "۱۴۳۹۷۵۶۷۸۹",
-    unitNumber: 1,
-  },
-  attributeIds: [1, 2, 3],
-  basePrice: 15000,
-  documentUrl: "",
-  imageUrls: [
-    "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800",
-    "https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?w=800",
-    "https://images.unsplash.com/photo-1470224114660-3f6686c562eb?w=800",
-  ],
-  latitude: 35.7564,
-  longitude: 51.4072,
-  slots: Array.from({ length: 24 }, (_, i) => ({
-    date: "2026-06-20",
-    hour: i,
-    id: i,
-    isBooked: Math.random() < 0.3,
-  })),
-  status: "ACTIVE",
+const PARKING_ATTRIBUTES: Record<number, string> = {
+  1: "دوربین مداربسته",
+  2: "شارژ برقی",
+  3: "موتورسیکلت",
+  4: "خودروهای سنگین",
+  5: "ویژه معلولین",
+  6: "سقف‌دار",
+};
+
+const attributeIconMap: Record<number, React.ElementType> = {
+  1: Shield,        // دوربین مداربسته
+  2: Zap,           // شارژ برقی
+  3: Bike,          // موتورسیکلت
+  4: Truck,         // خودروهای سنگین
+  5: Accessibility, // ویژه معلولین
+  6: Home,          // سقف‌دار
 };
 
 const isContiguous = (hours: number[]): boolean => {
@@ -111,6 +105,7 @@ export default function ParkingProfile() {
   const [data, setData] = useState<ParkingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attributes, setAttributes] = useState<StaticItem[]>([]);
 
   const [currentImage, setCurrentImage] = useState(0);
   const [showReserveDialog, setShowReserveDialog] = useState(false);
@@ -132,21 +127,28 @@ export default function ParkingProfile() {
       try {
         setIsLoading(true);
         const fetchId = id || "1";
-        // Using base client instead of absolute URL
         const response = await getData({
-          endPoint: `/v1/parking/parkingInfo/${fetchId}`,
+          endPoint: `/v1/Generalparking/info/${fetchId}`,
         });
-        setData(response.data);
+        setData(response.data || response);
       } catch (err) {
-        console.warn("API failed, using mock data for now", err);
-        // Fallback to mock data to keep UI visible while API has no data
-        setData(MOCK_FALLBACK_DATA);
+        console.error("API failed to get parking info:", err);
+        setError("خطا در دریافت اطلاعات پارکینگ از سرور");
       } finally {
         setIsLoading(false);
       }
     };
     fetchParking();
   }, [id]);
+
+  useEffect(() => {
+    // Fetch attributes from API
+    getData({ endPoint: "/v1/parking/static/attributes" })
+      .then((res: any) => {
+        setAttributes(res.data || res || []);
+      })
+      .catch((err: any) => console.error("error fetching attributes:", err));
+  }, []);
 
   useEffect(() => {
     if (isTransitioning) {
@@ -198,6 +200,10 @@ export default function ParkingProfile() {
     );
   }
 
+  const attributeIds = data.attributeIds || data.attribute_ids || [];
+  const imageUrls = data.imageUrls || data.image_urls || [];
+  const basePrice = data.basePrice ?? data.base_price ?? 0;
+
   const parking = {
     id: data.id,
     name: data.title || "بدون نام",
@@ -206,18 +212,13 @@ export default function ParkingProfile() {
     province: `شهر ${data.address?.cityId || ""}`,
     postalCode: data.address?.postalCode || "نامشخص",
     capacity: (data.slots || []).length,
-    pricePerHour: data.basePrice || 0,
+    pricePerHour: basePrice,
     description: "", // No description in API
     latitude: data.latitude || 35.6892,
     longitude: data.longitude || 51.389,
-    amenities: {
-      cctv: data.attributeIds?.includes(1) || false,
-      security: data.attributeIds?.includes(2) || false,
-      covered: data.attributeIds?.includes(3) || false,
-    },
     images:
-      data.imageUrls?.length > 0
-        ? data.imageUrls
+      imageUrls.length > 0
+        ? imageUrls
         : [
             "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800",
           ],
@@ -618,80 +619,39 @@ export default function ParkingProfile() {
           </div>
         )}
 
-        {/* ── Elegant Amenities Section with Status Dots ── */}
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-sm text-right">
-          <div className="flex items-center gap-2 border-b border-border pb-2.5 justify-start">
-            <Shield size={18} className="text-primary" />
-            <h2 className="font-bold text-foreground text-base">
-              امکانات امنیتی و رفاهی
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* CCTV Security Display */}
-            <div
-              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
-                parking.amenities.cctv
-                  ? "bg-primary/5 border-primary/20 shadow-sm"
-                  : "border-border bg-muted/30 opacity-60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Eye
-                  className={`h-5 w-5 ${parking.amenities.cctv ? "text-primary animate-pulse" : "text-muted-foreground"}`}
-                />
-                <span className="font-bold text-sm text-foreground">
-                  دوربین مداربسته
-                </span>
-              </div>
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.cctv ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
-              />
+        {/* ── Dynamic Amenities Section ── */}
+        {attributeIds && attributeIds.length > 0 && (
+          <div className="bg-card border border-border rounded-2xl p-5 space-y-4 shadow-sm text-right">
+            <div className="flex items-center gap-2 border-b border-border pb-2.5 justify-start">
+              <Shield size={18} className="text-primary" />
+              <h2 className="font-bold text-foreground text-base">
+                امکانات امنیتی و رفاهی
+              </h2>
             </div>
 
-            {/* Physical Security Guard Display */}
-            <div
-              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
-                parking.amenities.security
-                  ? "bg-primary/5 border-primary/20 shadow-sm"
-                  : "border-border bg-muted/30 opacity-60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Shield
-                  className={`h-5 w-5 ${parking.amenities.security ? "text-primary animate-pulse" : "text-muted-foreground"}`}
-                />
-                <span className="font-bold text-sm text-foreground">
-                  نگهبان مستقر
-                </span>
-              </div>
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.security ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
-              />
-            </div>
-
-            {/* Covered Roof Display */}
-            <div
-              className={`p-4 rounded-xl border flex items-center justify-between transition-all duration-300 ${
-                parking.amenities.covered
-                  ? "bg-primary/5 border-primary/20 shadow-sm"
-                  : "border-border bg-muted/30 opacity-60"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Home
-                  className={`h-5 w-5 ${parking.amenities.covered ? "text-primary animate-pulse" : "text-muted-foreground"}`}
-                />
-                <span className="font-bold text-sm text-foreground">
-                  محیط سقف‌دار
-                </span>
-              </div>
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${parking.amenities.covered ? "bg-emerald-500 animate-ping" : "bg-muted-foreground/30"}`}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {attributeIds.map((attrId) => {
+                const attrName = attributes.find((a) => a.id === attrId)?.name || PARKING_ATTRIBUTES[attrId];
+                if (!attrName) return null;
+                const IconComponent = attributeIconMap[attrId] || Shield;
+                return (
+                  <div
+                    key={attrId}
+                    className="p-4 rounded-xl border flex items-center justify-between transition-all duration-300 bg-primary/5 border-primary/20 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <IconComponent className="h-5 w-5 text-primary shrink-0" />
+                      <span className="font-bold text-sm text-foreground">
+                        {attrName}
+                      </span>
+                    </div>
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        )}
 
         {/* ── Original Leaflet Map── */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-3 text-right">
