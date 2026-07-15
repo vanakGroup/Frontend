@@ -82,6 +82,25 @@ function convertDigitsToEnglish(str: string): string {
   return result;
 }
 
+function translateErrorMessage(msg: string): string {
+  const lowerMsg = msg.toLowerCase().trim();
+  if (
+    lowerMsg.includes("national id already exists") ||
+    lowerMsg.includes("national_code already exists") ||
+    lowerMsg.includes("national code already exists")
+  ) {
+    return "این کد ملی قبلاً ثبت شده است.";
+  }
+  if (
+    lowerMsg.includes("iban already exists") ||
+    lowerMsg.includes("shaba_number already exists") ||
+    lowerMsg.includes("shaba already exists")
+  ) {
+    return "این شماره شبا قبلاً ثبت شده است.";
+  }
+  return msg;
+}
+
 export default function UserProfile() {
   const navigate = useNavigate();
   const { phone: storePhone, accessToken, clearAuth, setUsername } = useUserStore();
@@ -178,29 +197,28 @@ export default function UserProfile() {
       return;
     }
 
-    const cleanNationalCode = profile.national_code.replace(/\s/g, "");
+    const cleanNationalCode = (profile.national_code || "").replace(/\s/g, "");
     if (
-      cleanNationalCode &&
-      (cleanNationalCode.length !== 10 || isNaN(Number(cleanNationalCode)))
+      !cleanNationalCode ||
+      cleanNationalCode.length !== 10 ||
+      isNaN(Number(cleanNationalCode))
     ) {
       setErrorMessage(
-        "کد ملی وارد شده معتبر نیست (باید دقیقاً ۱۰ رقم عددی باشد).",
+        "کد ملی الزامی است و باید دقیقاً ۱۰ رقم عددی باشد.",
       );
       return;
     }
 
-    let cleanShaba = profile.shaba_number.replace(/\s/g, "").toUpperCase();
-    if (cleanShaba) {
-      if (cleanShaba.startsWith("IR")) {
-        cleanShaba = cleanShaba.substring(2);
-      }
-      const digitsRegex = /^\d{24}$/;
-      if (!digitsRegex.test(cleanShaba)) {
-        setErrorMessage(
-          "شماره شبا وارد شده معتبر نیست (باید دقیقاً ۲۴ رقم باشد).",
-        );
-        return;
-      }
+    let cleanShaba = (profile.shaba_number || "").replace(/\s/g, "").toUpperCase();
+    if (cleanShaba.startsWith("IR")) {
+      cleanShaba = cleanShaba.substring(2);
+    }
+    const digitsRegex = /^\d{24}$/;
+    if (!digitsRegex.test(cleanShaba)) {
+      setErrorMessage(
+        "شماره شبا الزامی است و باید دقیقاً ۲۴ رقم باشد.",
+      );
+      return;
     }
 
     try {
@@ -227,9 +245,8 @@ export default function UserProfile() {
         setUsername(`${payload.firstname} ${payload.lastname}`.trim());
         setTimeout(() => setSuccessMessage(null), 4000);
       } else {
-        // --- Safe Error Parsing to Prevent React Crash ---
-        if (result.message && typeof result.message === "object") {
-          // اگر خطا یک شیء تودرتو بود، عمیق‌ترین مقادیر متنی را استخراج می‌کند
+        const errorData = result;
+        if (errorData?.message && typeof errorData.message === "object") {
           const extractErrors = (obj: any): string[] => {
             let messages: string[] = [];
             for (const key in obj) {
@@ -241,11 +258,10 @@ export default function UserProfile() {
             }
             return messages;
           };
-
-          const errList = extractErrors(result.message);
+          const errList = extractErrors(errorData.message).map(translateErrorMessage);
           setErrorMessage(errList.join(" | "));
-        } else if (result.message) {
-          setErrorMessage(String(result.message));
+        } else if (errorData?.message) {
+          setErrorMessage(translateErrorMessage(String(errorData.message)));
         } else {
           setErrorMessage("خطا در به‌روزرسانی اطلاعات حساب کاربری.");
         }
@@ -255,7 +271,26 @@ export default function UserProfile() {
         clearAuth();
         navigate("/login");
       } else {
-        setErrorMessage("خطا در برقراری ارتباط با وب‌سرویس.");
+        const errorData = error.response?.data;
+        if (errorData?.message && typeof errorData.message === "object") {
+          const extractErrors = (obj: any): string[] => {
+            let messages: string[] = [];
+            for (const key in obj) {
+              if (typeof obj[key] === "object" && obj[key] !== null) {
+                messages = messages.concat(extractErrors(obj[key]));
+              } else {
+                messages.push(String(obj[key]));
+              }
+            }
+            return messages;
+          };
+          const errList = extractErrors(errorData.message).map(translateErrorMessage);
+          setErrorMessage(errList.join(" | "));
+        } else if (errorData?.message) {
+          setErrorMessage(translateErrorMessage(String(errorData.message)));
+        } else {
+          setErrorMessage("خطا در برقراری ارتباط با وب‌سرویس.");
+        }
       }
     } finally {
       setIsSaving(false);
@@ -402,7 +437,7 @@ export default function UserProfile() {
                     htmlFor="national_code"
                     className="text-xs md:text-sm font-bold text-foreground/80 transition-colors group-focus-within:text-primary"
                   >
-                    کد ملی{" "}
+                    کد ملی <span className="text-destructive">*</span>{" "}
                     <span className="text-[10px] text-muted-foreground font-normal">
                       (جهت احراز هویت)
                     </span>
@@ -418,6 +453,7 @@ export default function UserProfile() {
                       placeholder="مثال: ۰۰۱۲۳۴۵۶۷۸"
                       maxLength={10}
                       className="w-full pr-12 pl-4 py-3.5 bg-background/50 border border-border/80 focus:border-primary focus:bg-background rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-right font-mono shadow-sm focus:shadow-md"
+                      required
                     />
                   </div>
                 </div>
@@ -428,10 +464,7 @@ export default function UserProfile() {
                     htmlFor="shaba_number"
                     className="text-xs md:text-sm font-bold text-foreground/80 transition-colors group-focus-within:text-primary"
                   >
-                    شماره شبا بدون IR (جهت تسویه مالکان){" "}
-                    <span className="text-[10px] text-muted-foreground font-normal">
-                      (اختیاری)
-                    </span>
+                    شماره شبا بدون IR (جهت تسویه مالکان) <span className="text-destructive">*</span>
                   </label>
                   <div className="relative">
                     <CreditCard className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/60 transition-colors group-focus-within:text-primary" />
@@ -444,6 +477,7 @@ export default function UserProfile() {
                       placeholder="مثال: ۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴"
                       maxLength={24}
                       className="w-full pr-12 pl-4 py-3.5 bg-background/50 border border-border/80 focus:border-primary focus:bg-background rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-right font-mono shadow-sm focus:shadow-md"
+                      required
                     />
                   </div>
                 </div>
