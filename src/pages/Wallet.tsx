@@ -185,17 +185,17 @@ export default function Wallet() {
                   </Button>
                 </DialogTrigger>
 
-                <DialogContent dir="rtl" className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>شارژ کیف پول</DialogTitle>
-                    <DialogDescription className="mt-2 text-muted-foreground">
+                <DialogContent dir="rtl" className="sm:max-w-md text-right">
+                  <DialogHeader className="text-right sm:text-right">
+                    <DialogTitle className="text-right sm:text-right">شارژ کیف پول</DialogTitle>
+                    <DialogDescription className="mt-2 text-muted-foreground text-right sm:text-right">
                       مبلغ مورد نظر خود را برای انتقال به درگاه پرداخت وارد
                       کنید.
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="flex flex-col gap-4 py-4">
-                    <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-4 py-4 text-right">
+                    <div className="flex flex-col gap-2 text-right">
                       <Label htmlFor="amount" className="text-right">
                         مبلغ (تومان)
                       </Label>
@@ -207,14 +207,14 @@ export default function Wallet() {
                         value={chargeAmount}
                         onChange={(e) => setChargeAmount(e.target.value)}
                         /* These utility classes completely strip out the browser counter arrows */
-                        className="text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        dir="ltr"
+                        className="text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        dir="rtl"
                         disabled={isDepositing}
                       />
                     </div>
                   </div>
 
-                  <DialogFooter className="sm:justify-start">
+                  <DialogFooter className="justify-start sm:justify-start text-right">
                     <button
                       type="button"
                       onClick={handleDeposit}
@@ -230,7 +230,7 @@ export default function Wallet() {
                     >
                       {isDepositing ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                           در حال انتقال...
                         </>
                       ) : (
@@ -266,17 +266,17 @@ export default function Wallet() {
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    {/* Explicitly set text-right for RTL alignment */}
-                    <TableHead className="py-3 px-4 text-right">
-                      شناسه تراکنش
+                    {/* Explicitly set text-center for centered alignment */}
+                    <TableHead className="py-3 px-4 text-center">
+                      شماره پیگیری
                     </TableHead>
-                    <TableHead className="py-3 px-4 text-right">
+                    <TableHead className="py-3 px-4 text-center">
                       نوع تراکنش
                     </TableHead>
-                    <TableHead className="py-3 px-4 text-right">
+                    <TableHead className="py-3 px-4 text-center">
                       تاریخ
                     </TableHead>
-                    <TableHead className="py-3 px-4 text-left">
+                    <TableHead className="py-3 px-4 text-center">
                       مبلغ (تومان)
                     </TableHead>
                   </TableRow>
@@ -299,21 +299,21 @@ export default function Wallet() {
 
                     return (
                       <TableRow key={trx.id}>
-                        <TableCell className="px-4 py-3 text-right font-medium text-foreground">
+                        <TableCell className="px-4 py-3 text-center font-medium text-foreground">
                           {trx.id}
                         </TableCell>
 
-                        <TableCell className="px-4 py-3 text-right text-muted-foreground">
+                        <TableCell className="px-4 py-3 text-center text-muted-foreground">
                           {transactionLabel}
                         </TableCell>
 
-                        <TableCell className="px-4 py-3 text-right text-muted-foreground text-sm">
+                        <TableCell className="px-4 py-3 text-center text-muted-foreground text-sm">
                           {formatPersianDate(trx.created_at)}
                         </TableCell>
 
-                        <TableCell className="px-4 py-3 text-left">
+                        <TableCell className="px-4 py-3 text-center">
                           <div
-                            className={`flex items-center justify-end gap-1 font-bold ${
+                            className={`flex items-center justify-center gap-1 font-bold ${
                               isDeposit
                                 ? "text-green-600 dark:text-green-500" // Green for all incoming money
                                 : "text-red-600 dark:text-red-500" // Red for outgoing money
