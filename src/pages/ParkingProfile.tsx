@@ -32,6 +32,9 @@ import type { Vehicle } from "@/services/vehicleService";
 import { createReservation } from "@/services/reservationService";
 import useUserStore from "@/store/userStore/userStore";
 import type { StaticItem } from "@/types/parking";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 
 // Fix leaflet icon
 const DefaultIcon = L.icon({
@@ -743,7 +746,11 @@ export default function ParkingProfile() {
                     <option value="">انتخاب تاریخ...</option>
                     {availableDates.map((date) => (
                       <option key={date} value={date}>
-                        {date}
+                        {new Date(date).toLocaleDateString("fa-IR", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
                       </option>
                     ))}
                   </select>
