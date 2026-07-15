@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getData } from "@/services/services";
@@ -79,12 +80,12 @@ const PARKING_ATTRIBUTES: Record<number, string> = {
 };
 
 const attributeIconMap: Record<number, React.ElementType> = {
-  1: Shield,        // دوربین مداربسته
-  2: Zap,           // شارژ برقی
-  3: Bike,          // موتورسیکلت
-  4: Truck,         // خودروهای سنگین
+  1: Shield, // دوربین مداربسته
+  2: Zap, // شارژ برقی
+  3: Bike, // موتورسیکلت
+  4: Truck, // خودروهای سنگین
   5: Accessibility, // ویژه معلولین
-  6: Home,          // سقف‌دار
+  6: Home, // سقف‌دار
 };
 
 const isContiguous = (hours: number[]): boolean => {
@@ -128,7 +129,7 @@ export default function ParkingProfile() {
         setIsLoading(true);
         const fetchId = id || "1";
         const response = await getData({
-          endPoint: `/v1/Generalparking/info/${fetchId}`,
+          endPoint: `/v1/parking/crud/parkingDetail/${fetchId}`,
         });
         setData(response.data || response);
       } catch (err) {
@@ -345,7 +346,11 @@ export default function ParkingProfile() {
     }
   };
 
-  const availableDates = [...new Set((data.slots || []).map((s) => s.date))].sort();
+  const availableDates = [
+    ...new Set((data.slots || []).map((s) => s.date)),
+  ].sort();
+  console.log("slots:", parking.slots);
+  console.log("availableDates:", availableDates);
 
   const totalImages = parking.images.length;
   const prevIndex = (currentImage - 1 + totalImages) % totalImages;
@@ -365,8 +370,14 @@ export default function ParkingProfile() {
     setCurrentImage(prevIndex);
   };
 
-  const lat = typeof parking.latitude === "number" && !isNaN(parking.latitude) ? parking.latitude : 35.6892;
-  const lng = typeof parking.longitude === "number" && !isNaN(parking.longitude) ? parking.longitude : 51.3890;
+  const lat =
+    typeof parking.latitude === "number" && !isNaN(parking.latitude)
+      ? parking.latitude
+      : 35.6892;
+  const lng =
+    typeof parking.longitude === "number" && !isNaN(parking.longitude)
+      ? parking.longitude
+      : 51.389;
 
   return (
     <div className="min-h-screen bg-muted" dir="rtl">
@@ -473,8 +484,8 @@ export default function ParkingProfile() {
                 key={i}
                 onClick={() => {
                   if (i !== currentImage) {
-                     setSlideDirection(i > currentImage ? "right" : "left");
-                     setCurrentImage(i);
+                    setSlideDirection(i > currentImage ? "right" : "left");
+                    setCurrentImage(i);
                   }
                 }}
                 className={`h-2 rounded-full transition-all duration-300 ${i === currentImage ? "w-8 bg-primary" : "w-2 bg-border-foreground/30 hover:bg-border-foreground/50"}`}
@@ -631,7 +642,9 @@ export default function ParkingProfile() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {attributeIds.map((attrId) => {
-                const attrName = attributes.find((a) => a.id === attrId)?.name || PARKING_ATTRIBUTES[attrId];
+                const attrName =
+                  attributes.find((a) => a.id === attrId)?.name ||
+                  PARKING_ATTRIBUTES[attrId];
                 if (!attrName) return null;
                 const IconComponent = attributeIconMap[attrId] || Shield;
                 return (
@@ -704,7 +717,8 @@ export default function ParkingProfile() {
               {/* راهنما */}
               <div className="space-y-1 text-right">
                 <p className="text-sm text-muted-foreground">
-                  ساعت‌های مورد نظر را انتخاب کنید. ساعت‌های خاکستری رزرو شده‌اند.
+                  ساعت‌های مورد نظر را انتخاب کنید. ساعت‌های خاکستری رزرو
+                  شده‌اند.
                 </p>
                 <p className="text-xs text-amber-600 font-medium">
                   ⚠️ فقط یک بازه زمانی پیوسته قابل انتخاب است
