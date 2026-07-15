@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getData } from "@/services/services";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { toast } from "sonner";
 import L from "leaflet";
 import {
   MapPin,
@@ -329,19 +330,29 @@ export default function ParkingProfile() {
     setIsSubmitting(true);
     setReserveError("");
 
+    // بعد
     try {
       await createReservation({
-        parking_id: parking.id,
+        parking_id: data.id,
         vehicle_id: selectedVehicleId,
         start_time: startTime,
         end_time: endTime,
       });
+
+      // close dialog + reset
       setShowReserveDialog(false);
       setSelectedHours([]);
       setSelectedDate("");
       setSelectedVehicleId("");
-      alert("رزرو با موفقیت انجام شد! ✅");
-    } catch (err: any) {
+
+      // refresh slots بدون reload
+      const response = await getData({
+        endPoint: `/v1/parking/crud/parkingDetail/${id}`,
+      });
+      setData(response.data || response);
+      toast.success("رزرو با موفقیت انجام شد!")
+
+    } catch (err: unknown) {
       console.error("reservation error:", err);
       setReserveError("خطا در ثبت رزرو. لطفا دوباره تلاش کنید.");
     } finally {
