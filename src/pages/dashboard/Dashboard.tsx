@@ -49,25 +49,25 @@ export default function Dashboard() {
       description: "مدیریت، ویرایش و ثبت فضاهای پارکینگ تحت مالکیت شما.",
       icon: <ParkingSquare className="h-8 w-8 text-primary" />,
       to: "/dashboard/management",
-      color: "bg-blue-500/10 border-blue-500/20",
+      color: "bg-white border-border",
     },
     {
       title: "ماشین‌های من",
       description: "ثبت پلاک و مدیریت اطلاعات خودروهای شما جهت رزرو سریع‌تر.",
       icon: <Car className="h-8 w-8 text-primary" />,
       to: "/vehicles",
-      color: "bg-green-500/10 border-green-500/20",
+      color: "bg-white border-border",
     },
     {
       title: "کیف پول",
       description: "شارژ حساب، مشاهده موجودی و تاریخچه تراکنش‌های اخیر.",
       icon: <WalletIcon className="h-8 w-8 text-primary" />,
       to: "/wallet",
-      color: "bg-amber-500/10 border-amber-500/20",
+      color: "bg-white border-border",
       extra: loadingBalance ? (
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
       ) : balance !== null ? (
-        <span className="text-xs font-semibold px-2 py-1 bg-amber-500/20 text-amber-800 dark:text-amber-300 rounded-full">
+        <span className="text-xs font-semibold px-2.5 py-1 bg-white border border-border text-foreground rounded-full">
           {balance.toLocaleString("fa-IR")} تومان
         </span>
       ) : null,
@@ -77,7 +77,7 @@ export default function Dashboard() {
       description: "تکمیل مشخصات فردی، کدملی، شماره شبا و اطلاعات کاربری.",
       icon: <User className="h-8 w-8 text-primary" />,
       to: "/dashboard/profile",
-      color: "bg-purple-500/10 border-purple-500/20",
+      color: "bg-white border-border",
     },
   ];
 
