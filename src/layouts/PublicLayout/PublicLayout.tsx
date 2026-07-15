@@ -54,7 +54,7 @@ const PublicLayout = () => {
   ];
 
   const userDashboardLinks = [
-    // { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
+    { label: "داشبورد", to: "/dashboard", icon: <Layers size={20} /> },
     {
       label: "پارکینگ های من",
       to: "/dashboard/management",

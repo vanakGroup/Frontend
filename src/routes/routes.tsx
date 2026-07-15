@@ -22,6 +22,7 @@ import ParkingReg from "@/pages/admin/ParkingReg";
 
 import UserProfile from "@/pages/dashboard/UserProfile";
 import ParkingProfile from "@/pages/ParkingProfile";
+import Dashboard from "@/pages/dashboard/Dashboard";
 
 export const router = createBrowserRouter([
   {
@@ -91,7 +92,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Management />,
+            element: <Dashboard />,
           },
           {
             path: "management",
