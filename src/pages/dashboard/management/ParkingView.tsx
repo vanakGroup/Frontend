@@ -291,7 +291,7 @@ export default function ParkingView() {
             </p>
           </div>
 
-          <div className="rounded-xl overflow-hidden border border-border h-64">
+          <div className="rounded-xl overflow-hidden border border-border h-64 relative z-0">
             <MapContainer
               center={mapCenter}
               zoom={13}
