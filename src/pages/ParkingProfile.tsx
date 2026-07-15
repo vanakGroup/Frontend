@@ -133,7 +133,7 @@ export default function ParkingProfile() {
         setIsLoading(true);
         const fetchId = id || "1";
         const response = await getData({
-          endPoint: `/v1/parking/crud/parkingDetail/${fetchId}`,
+          endPoint: `/v1/Generalparking/info/${fetchId}`,
         });
         setData(response.data || response);
       } catch (err) {
@@ -347,7 +347,7 @@ export default function ParkingProfile() {
 
       // refresh slots بدون reload
       const response = await getData({
-        endPoint: `/v1/parking/crud/parkingDetail/${id}`,
+        endPoint: `/v1/Generalparking/info/${id}`,
       });
       setData(response.data || response);
       toast.success("رزرو با موفقیت انجام شد!")
