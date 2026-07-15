@@ -519,13 +519,7 @@ export default function ParkingProfile() {
                 </h1>
 
                 {/* Score badge safely relocated beside the name */}
-                <div className="bg-primary/10 border border-primary/20 text-primary px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                  <span className="text-amber-500">★</span>
-                  <span>{parking.score}</span>
-                  <span className="opacity-80">
-                    ({parking.reviewCount} نظر)
-                  </span>
-                </div>
+                
               </div>
 
               <div className="flex items-center gap-2 justify-center md:justify-start">
