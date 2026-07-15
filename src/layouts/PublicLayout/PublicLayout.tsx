@@ -118,7 +118,7 @@ const PublicLayout = () => {
           min-h-screen overflow-x-hidden transition-all duration-300 ease-in-out
           flex flex-col
           pt-0 pb-28 ${shouldShowNavbar ? "md:pt-16 md:pb-0" : "md:pt-0 md:pb-0"}
-          ${shouldShowNavbar && shouldShowSidebar && isExpanded ? "md:pr-64 pr-0" : "pr-0"}
+          ${shouldShowNavbar && shouldShowSidebar ? (isExpanded ? "md:pr-64 pr-0" : "md:pr-16 pr-0") : "pr-0"}
         `}
       >
         <div className="flex-grow ">

@@ -20,7 +20,7 @@ export const DesktopNavBar = ({ showToggle, links }: Props) => {
         {phone ? (
           <div className="flex items-center gap-4" dir="rtl">
             <div
-              onClick={() => Navigate("/dashboard/profile")}
+              onClick={() => Navigate("/dashboard")}
               className="flex items-center gap-3 cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground shrink-0">
