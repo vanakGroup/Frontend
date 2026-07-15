@@ -229,7 +229,10 @@ export default function ParkingHistory() {
         parkingId={parkingId}
         parkingName={parkingName}
         today={today}
-        onClose={() => setSelected(null)}
+        onClose={() => {
+          setSelected(null);
+          loadReservations();
+        }}
         onSettled={loadReservations}
       />
     </div>
