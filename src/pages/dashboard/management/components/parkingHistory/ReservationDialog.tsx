@@ -42,9 +42,7 @@ export function ReservationDialog({
     : false;
 
   const canSettle = reservation
-    ? reservation.end_time * 1000 <= Date.now() &&
-      reservation.status !== "completed" &&
-      reservation.status !== "cancelled"
+    ? reservation.status !== "completed"
     : false;
 
   const handleSettle = async () => {
@@ -158,17 +156,15 @@ export function ReservationDialog({
             </div>
           </div>
           <div className="mt-4 flex gap-2">
-            {/* {canSettle && (
-              <Button onClick={handleSettle} disabled={settling} className="flex-1">
-                {settling && <Loader2 size={16} className="animate-spin" />}
-                تسویه
-              </Button>
-            )} */}
             <Button
-              variant={canSettle ? "outline" : "default"}
-              onClick={onClose}
-              className={canSettle ? "" : "flex-1"}
+              onClick={handleSettle}
+              disabled={!canSettle || settling}
+              className="flex-1"
             >
+              {settling && <Loader2 size={16} className="animate-spin" />}
+              تکمیل
+            </Button>
+            <Button variant="outline" onClick={onClose} className="flex-1">
               بستن
             </Button>
           </div>
