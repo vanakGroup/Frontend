@@ -256,14 +256,14 @@ const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
       (child) =>
         React.isValidElement(child) &&
         (child.type === CustomInputLabel ||
-          (child.type as any)?.displayName === "CustomInput.Label"),
+          (child.type as { displayName?: string })?.displayName === "CustomInput.Label"),
     );
 
     const hasErrorChild = React.Children.toArray(children).some(
       (child) =>
         React.isValidElement(child) &&
         (child.type === CustomInputError ||
-          (child.type as any)?.displayName === "CustomInput.Error"),
+          (child.type as { displayName?: string })?.displayName === "CustomInput.Error"),
     );
 
     const contextValue: CustomInputContextValue = {

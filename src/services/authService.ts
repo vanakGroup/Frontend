@@ -25,9 +25,9 @@ export const verifyOTPService = async (payload: VerifyOTPPayload) => {
   });
 };
 
-export const loginService = async (payload: {
-  phone: string;
-}): Promise<LoginResponse> => {
+export const loginService = async (
+  payload: LoginPayload,
+): Promise<LoginResponse> => {
   return postData({
     endPoint: `/v1/auth/login`,
     data: payload,

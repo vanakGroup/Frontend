@@ -104,12 +104,18 @@ export function VehicleDetailsDialog({
 
           <div className="grid grid-cols-[auto_1fr] sm:grid-cols-2 gap-2 sm:gap-3 text-sm bg-white p-3 sm:p-4 rounded-lg border border-primary">
             <div className="font-medium text-gray-800 text-right">پلاک:</div>
-            <div className="text-gray-800 font-mono tracking-wider">
-              {displayVehicle.license_plate.slice(3, 6)}&nbsp;
-              {displayVehicle.license_plate.slice(6, 8)}&nbsp;
-              {displayVehicle.license_plate.slice(2, 3)}&nbsp;
-              {displayVehicle.license_plate.slice(0, 2)}&nbsp;
-            </div>
+            {(() => {
+              const cleanPlate = (displayVehicle.license_plate || "").replace(/\s/g, "");
+              return cleanPlate.length >= 8 ? (
+                <div className="text-gray-800 font-mono tracking-wider">
+                  {cleanPlate.slice(0, 2)}&nbsp;{cleanPlate.slice(2, 3)}&nbsp;{cleanPlate.slice(3, 6)}&nbsp;ایران {cleanPlate.slice(6, 8)}
+                </div>
+              ) : (
+                <div className="text-gray-800 font-mono tracking-wider">
+                  {displayVehicle.license_plate}
+                </div>
+              );
+            })()}
 
             <div className="font-medium text-gray-800 text-right">مدل:</div>
             <div className="text-gray-800 text-right">

@@ -18,7 +18,6 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Eye,
   Hash,
   Info,
   Loader2,
@@ -33,9 +32,6 @@ import type { Vehicle } from "@/services/vehicleService";
 import { createReservation } from "@/services/reservationService";
 import useUserStore from "@/store/userStore/userStore";
 import type { StaticItem } from "@/types/parking";
-import DatePicker from "react-multi-date-picker";
-import persian from "react-date-object/calendars/persian";
-import persian_fa from "react-date-object/locales/persian_fa";
 
 // Fix leaflet icon
 const DefaultIcon = L.icon({
@@ -205,9 +201,9 @@ export default function ParkingProfile() {
     );
   }
 
-  const attributeIds = data.attributeIds || data.attribute_ids || [];
-  const imageUrls = data.imageUrls || data.image_urls || [];
-  const basePrice = data.basePrice ?? data.base_price ?? 0;
+  const attributeIds = data.attributeIds || [];
+  const imageUrls = data.imageUrls || [];
+  const basePrice = data.basePrice ?? 0;
 
   const parking = {
     id: data.id,
@@ -363,7 +359,7 @@ export default function ParkingProfile() {
   const availableDates = [
     ...new Set((data.slots || []).map((s) => s.date)),
   ].sort();
-  console.log("slots:", parking.slots);
+  console.log("slots:", data.slots);
   console.log("availableDates:", availableDates);
 
   const totalImages = parking.images.length;

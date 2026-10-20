@@ -1,7 +1,4 @@
 import {
-  Plus,
-  Pencil,
-  Trash2,
   Car,
   MapPin,
   Phone,

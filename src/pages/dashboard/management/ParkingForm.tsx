@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Plus, X, Trash2, Loader2 } from "lucide-react";
+import { ArrowRight, Plus, X, Trash2, Loader2, FileText } from "lucide-react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -24,39 +24,6 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const iranProvinces = [
-  "تهران",
-  "اصفهان",
-  "شیراز",
-  "مشهد",
-  "تبریز",
-  "ارومیه",
-  "اردبیل",
-  "کرج",
-  "ایلام",
-  "بوشهر",
-  "شهرکرد",
-  "بیرجند",
-  "بجنورد",
-  "اهواز",
-  "زنجان",
-  "سمنان",
-  "زاهدان",
-  "قزوین",
-  "قم",
-  "سنندج",
-  "کرمان",
-  "کرمانشاه",
-  "یاسوج",
-  "گرگان",
-  "رشت",
-  "خرم‌آباد",
-  "ساری",
-  "اراک",
-  "بندرعباس",
-  "همدان",
-  "یزد",
-];
 
 const customLocale = {
   ...persian_fa,
@@ -85,12 +52,12 @@ interface DaySlot {
 }
 
 interface ImageFile {
-  file: File;
+  file: File | null;
   preview: string;
 }
 
 interface DocumentFile {
-  file: File;
+  file: File | null;
   name: string;
   url: string;
 }
@@ -305,7 +272,7 @@ export default function ParkingForm() {
     if (parking.imageUrls && parking.imageUrls.length > 0) {
       setImages(
         parking.imageUrls.map((url) => ({
-          file: null as any,
+          file: null,
           preview: url,
         })),
       );
@@ -314,7 +281,7 @@ export default function ParkingForm() {
     if (parking.documentUrl) {
       const docFile = await fetchUrlAsFile(parking.documentUrl, "document.png");
       setDocumentFile({
-        file: docFile as any,
+        file: docFile,
         name: "مدرک بارگذاری‌شده قبلی",
         url: parking.documentUrl,
       });
@@ -473,7 +440,7 @@ export default function ParkingForm() {
       formData.append("documentFile", documentFile.file);
     }
 
-    const newImages = images.filter((img) => img.file && img.file.size > 0);
+    const newImages = images.filter((img): img is { file: File; preview: string } => !!img.file && img.file.size > 0);
     newImages.forEach((img) => {
       formData.append("images", img.file);
     });

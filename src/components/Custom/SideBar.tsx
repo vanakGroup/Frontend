@@ -71,20 +71,23 @@ export const SideBar = ({ children }: SideBarProps) => {
         {/* Dynamic Links */}
         <div className={`flex flex-col flex-1 md:mt-0 ${isExpanded ? "px-3" : "md:px-1 px-3"}`}>{children}</div>
 
-        {/* Toggle Panel Button
+        {/* Toggle Panel Button */}
         {role === "ADMIN" && (
           <div className="mt-auto px-3 pt-4 border-t border-border">
             <Button
-              className="w-full flex items-center justify-start gap-3"
+              className={`w-full flex items-center ${isExpanded ? "justify-start gap-3" : "justify-center p-2"}`}
               onClick={handleToggleMode}
+              title={isAdminMode ? "نمایش پنل کاربری" : "نمایش پنل مدیریت"}
             >
               <ArrowRightLeft size={18} />
-              <span>
-                {isAdminMode ? "نمایش پنل کاربری" : "نمایش پنل مدیریت"}
-              </span>
+              {isExpanded && (
+                <span>
+                  {isAdminMode ? "نمایش پنل کاربری" : "نمایش پنل مدیریت"}
+                </span>
+              )}
             </Button>
           </div>
-        )} */}
+        )}
       </aside>
     </>
   );

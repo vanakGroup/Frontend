@@ -88,11 +88,10 @@ function Root({
   );
 }
 
-interface CheckboxSubComponentProps
-  extends Omit<
-    React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
-    "checked" | "onCheckedChange" | "disabled" | "id"
-  > {}
+type CheckboxSubComponentProps = Omit<
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>,
+  "checked" | "onCheckedChange" | "disabled" | "id"
+>;
 
 function CheckboxSubComponent({
   className,
@@ -153,7 +152,7 @@ function Label({
   const { id, disabled, variant: checkboxVariant } = useCustomCheckBoxContext();
 
   // Map checkbox variant to label variant if not explicitly provided
-  const labelVariant = variant || (checkboxVariant === "default" ? "default" : checkboxVariant as any);
+  const labelVariant = variant || (checkboxVariant === "default" ? "default" : (checkboxVariant as "primary" | "secondary" | "accent"));
 
   return (
     <CustomLabel
@@ -174,8 +173,8 @@ function Label({
   );
 }
 
-export const CustomCheckBox = {
+export const CustomCheckBox = Object.assign(Root, {
   Root,
   Checkbox: CheckboxSubComponent,
   Label,
-};
+});

@@ -62,8 +62,10 @@ export interface PaginationMeta {
 export interface ParkingSearchResponse {
   statusCode: number;
   message: string;
-  data: ParkingData[];
-  pagination: PaginationMeta;
+  data: {
+    data: ParkingData[];
+    pagination?: PaginationMeta;
+  };
 }
 
 // ==========================================
@@ -76,7 +78,7 @@ export const searchParkingService = async (
   // Clean payload: Remove null, undefined, or empty strings so the API gets a clean JSON
   const cleanPayload = Object.fromEntries(
     Object.entries(payload).filter(
-      ([_, value]) => value !== null && value !== undefined && value !== "",
+      ([, value]) => value !== null && value !== undefined && value !== "",
     ),
   );
 

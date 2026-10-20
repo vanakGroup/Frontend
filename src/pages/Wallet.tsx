@@ -75,8 +75,9 @@ export default function Wallet() {
       }
 
       setTransactions(transactionsResponse.data || []);
-    } catch (error: any) {
-      if (error?.statusCode === 422 || error?.response?.status === 422) {
+    } catch (error: unknown) {
+      const err = error as { statusCode?: number; response?: { status?: number } };
+      if (err?.statusCode === 422 || err?.response?.status === 422) {
         setIsActive(false);
         setBalance(0);
         setTransactions([]);

@@ -23,6 +23,16 @@ export default defineConfig([
 			"@typescript-eslint/no-unused-vars": [
 				"warn",
 			],
+			"react-refresh/only-export-components": [
+				"warn",
+				{ allowConstantExport: true },
+			],
+		},
+	},
+	{
+		files: ["src/components/ui/**", "src/components/Custom/**", "src/components/Share/**"],
+		rules: {
+			"react-refresh/only-export-components": "off",
 		},
 	},
 ]);
