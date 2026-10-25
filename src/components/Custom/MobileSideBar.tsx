@@ -6,8 +6,8 @@ import useUserStore from "@/store/userStore/userStore";
 
 interface Props {
   isDashboardPage: boolean;
-  mainLinks: { label: string; to: string; icon: React.ReactNode }[];
-  dashboardLinks: { label: string; to: string; icon: React.ReactNode }[];
+  mainLinks: { label: string; to: string; icon?: React.ReactNode }[];
+  dashboardLinks: { label: string; to: string; icon?: React.ReactNode }[];
 }
 
 export const MobileSideBar = ({

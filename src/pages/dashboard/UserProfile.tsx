@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   User,
@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { getData, putData } from "@/services/services";
 import useUserStore from "@/store/userStore/userStore";
 
@@ -41,7 +40,7 @@ interface SwaggerPutPayload {
 }
 
 interface SwaggerPutResponse {
-  data: any;
+  data: unknown;
   message: string | Record<string, string>;
   statusCode: number;
 }
@@ -162,8 +161,9 @@ export default function UserProfile() {
         } else {
           setErrorMessage(result.message || "خطا در بارگذاری مشخصات از سرور.");
         }
-      } catch (error: any) {
-        if (error.response?.status === 401) {
+      } catch (error: unknown) {
+        const err = error as { response?: { status?: number } };
+        if (err.response?.status === 401) {
           clearAuth();
           navigate("/login");
         } else {
@@ -262,18 +262,18 @@ export default function UserProfile() {
       } else {
         const errorData = result;
         if (errorData?.message && typeof errorData.message === "object") {
-          const extractErrors = (obj: any): string[] => {
+          const extractErrors = (obj: Record<string, unknown>): string[] => {
             let messages: string[] = [];
             for (const key in obj) {
               if (typeof obj[key] === "object" && obj[key] !== null) {
-                messages = messages.concat(extractErrors(obj[key]));
+                messages = messages.concat(extractErrors(obj[key] as Record<string, unknown>));
               } else {
                 messages.push(String(obj[key]));
               }
             }
             return messages;
           };
-          const errList = extractErrors(errorData.message).map(translateErrorMessage);
+          const errList = extractErrors(errorData.message as Record<string, unknown>).map(translateErrorMessage);
           setErrorMessage(errList.join(" | "));
         } else if (errorData?.message) {
           setErrorMessage(translateErrorMessage(String(errorData.message)));
@@ -281,25 +281,27 @@ export default function UserProfile() {
           setErrorMessage("خطا در به‌روزرسانی اطلاعات حساب کاربری.");
         }
       }
-    } catch (error: any) {
-      if (error.response?.status === 401) {
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number; data?: { message?: unknown } } };
+      if (err.response?.status === 401) {
         clearAuth();
         navigate("/login");
       } else {
-        const errorData = error.response?.data;
+        const errorData = err.response?.data;
         if (errorData?.message && typeof errorData.message === "object") {
-          const extractErrors = (obj: any): string[] => {
+          const extractErrors = (obj: Record<string, unknown>): string[] => {
             let messages: string[] = [];
             for (const key in obj) {
-              if (typeof obj[key] === "object" && obj[key] !== null) {
-                messages = messages.concat(extractErrors(obj[key]));
+              const val = obj[key];
+              if (typeof val === "object" && val !== null) {
+                messages = messages.concat(extractErrors(val as Record<string, unknown>));
               } else {
-                messages.push(String(obj[key]));
+                messages.push(String(val));
               }
             }
             return messages;
           };
-          const errList = extractErrors(errorData.message).map(translateErrorMessage);
+          const errList = extractErrors(errorData.message as Record<string, unknown>).map(translateErrorMessage);
           setErrorMessage(errList.join(" | "));
         } else if (errorData?.message) {
           setErrorMessage(translateErrorMessage(String(errorData.message)));

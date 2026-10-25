@@ -8,7 +8,7 @@ export interface ParkingState {
   maxPrice: number;
   minScore: number;
   cityId: number | null;
-  date: string;
+  date: string | null;
   startHour: number | null;
   endHour: number | null;
   currentPage: number;
@@ -22,7 +22,7 @@ export interface ParkingState {
   setMaxPrice: (price: number) => void;
   setMinScore: (score: number) => void;
   setCityId: (id: number | null) => void;
-  setDate: (date: string) => void;
+  setDate: (date: string | null) => void;
   setStartHour: (hour: number | null) => void;
   setEndHour: (hour: number | null) => void;
   setCurrentPage: (page: number) => void;
@@ -38,7 +38,7 @@ export const useParkingStore = create<ParkingState>((set) => ({
   maxPrice: 60,
   minScore: 0,
   cityId: null,
-  date: "",
+  date: null,
   startHour: null,
   endHour: null,
   currentPage: 1,
@@ -66,7 +66,7 @@ export const useParkingStore = create<ParkingState>((set) => ({
       maxPrice: 60,
       minScore: 0,
       cityId: null,
-      date: "", // CHANGED: Reset back to empty string
+      date: null,
       startHour: null,
       endHour: null,
       currentPage: 1,

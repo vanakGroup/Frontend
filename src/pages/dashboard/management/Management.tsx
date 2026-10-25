@@ -4,7 +4,6 @@ import {
   Pencil,
   Trash2,
   Clock,
-  ArrowRight,
   MapPin,
   BarChart3,
   Loader2,

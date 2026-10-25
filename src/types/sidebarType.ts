@@ -5,4 +5,5 @@ export interface SidebarState {
   expandSidebar: () => void;
   collapseSidebar: () => void;
   toggleAdminMode: () => void;
+  setAdminMode: (isAdmin: boolean) => void;
 }

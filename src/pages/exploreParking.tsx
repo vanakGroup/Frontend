@@ -150,11 +150,11 @@ export default function ParkingSearchPage() {
         const resultPayload = response?.data;
 
         if (resultPayload && Array.isArray(resultPayload.data)) {
-          const formattedParkings = resultPayload.data.map((parking: any) => ({
+          const formattedParkings = resultPayload.data.map((parking) => ({
             ...parking,
-            basePrice: parking.base_price,
-            imageUrls: parking.image_urls,
-            attributeIds: parking.attribute_ids || [],
+            basePrice: parking.basePrice,
+            imageUrls: parking.imageUrls,
+            attributeIds: parking.attributeIds || [],
           }));
 
           setParkings(formattedParkings);
@@ -575,7 +575,6 @@ export default function ParkingSearchPage() {
                   return (
                     <Button
                       key={page}
-                      // @ts-ignore Ignore non-standard size prop to match existing template if custom
                       size="icon-sm"
                       variant={currentPage === page ? "default" : "ghost"}
                       onClick={() => setCurrentPage(Number(page))}

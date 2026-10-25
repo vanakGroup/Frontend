@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Calendar,
   MapPin,
@@ -6,7 +6,6 @@ import {
   Compass,
   Eye,
   Target,
-  Mail,
   Sparkles,
   MessageSquare,
   HelpCircle,
@@ -30,7 +29,6 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 
 // Custom Intersection Observer Hook for Scroll Reveal
@@ -51,13 +49,14 @@ function useIntersectionState() {
       { threshold: 0.1 },
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    const currentRef = ref.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);

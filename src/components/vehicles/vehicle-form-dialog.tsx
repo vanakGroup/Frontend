@@ -11,7 +11,6 @@ import { CustomLabel } from "@/components/Custom/CustomLabel";
 import CustomInput from "@/components/Custom/CustomInput";
 import { Upload, Car } from "lucide-react";
 import { createVehicle } from "./vehicle-service";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const ENGLISH_TO_PERSIAN: Record<string, string> = {
@@ -203,8 +202,6 @@ export function VehicleFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
-
-  const isMobile = useIsMobile();
 
   return (
     <CustomDialog

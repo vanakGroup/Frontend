@@ -22,6 +22,7 @@ import useUserStore from "@/store/userStore/userStore";
 import { loginService } from "@/services/authService";
 import CustomToast from "@/components/Custom/CustomToast";
 import { useNavigate } from "react-router-dom";
+import { getData } from "@/services/services";
 
 const TIMER_START = 120;
 
@@ -66,8 +67,7 @@ export default function OTPStep({
 
         // Fetch user profile immediately to update username in navbar
         try {
-          const { getData } = await import("@/services/services");
-          const profileRes = await getData({ endPoint: "/v1/profile" });
+                    const profileRes = await getData({ endPoint: "/v1/profile" });
           if (profileRes && profileRes.statusCode === 200) {
             const userData = profileRes.data;
             if (userData && (userData.first_name || userData.last_name)) {

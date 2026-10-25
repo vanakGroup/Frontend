@@ -27,9 +27,9 @@ export default function Temp() {
   };
   const login = () => {
     setLoading(true);
-    loginService({ email, username, password })
+    loginService({ phone: email })
       .then((data) => {
-        setUsername(data?.user?.username);
+        setUsername(data?.data?.phone || "کاربر");
         CustomToast("Login successful", "success");
       })
       .catch((error) => {
@@ -116,7 +116,7 @@ export default function Temp() {
       </div>
       <div className="bg-hover">
         <input
-          value={username}
+          value={username || ""}
           onChange={(e) => {
             setUsername(e.target.value);
           }}

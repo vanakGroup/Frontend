@@ -10,7 +10,7 @@ export interface WalletData {
 export interface WalletBalanceResponse {
   statusCode: number;
   // Allow message to be a string OR the nested object from the 422 error
-  message: string | Record<string, any>;
+  message: string | Record<string, unknown>;
   // Allow data to be null
   data: WalletData | null;
 }
